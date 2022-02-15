@@ -25,7 +25,7 @@ namespace NevaManagement.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddCors();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -40,9 +40,12 @@ namespace NevaManagement.Api
 
             // Repositories
             services.AddTransient<IResearcherRepository, ResearcherRepository>();
+            services.AddTransient<IProductRepository, ProductRepository>();
+            services.AddTransient<ILocationRepository, LocationRepository>();
 
             // Services
             services.AddTransient<IResearcherService, ResearcherService>();
+            services.AddTransient<IProductService, ProductService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -59,6 +62,10 @@ namespace NevaManagement.Api
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseCors(
+                options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+            );
 
             app.UseEndpoints(endpoints =>
             {

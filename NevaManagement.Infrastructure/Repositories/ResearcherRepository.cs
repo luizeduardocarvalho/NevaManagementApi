@@ -12,7 +12,6 @@ namespace NevaManagement.Infrastructure.Repositories
 
         public ResearcherRepository(NevaManagementDbContext context)
             : base(context)
-
         {
             this.context = context;
         }
