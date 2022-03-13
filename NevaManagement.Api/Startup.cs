@@ -41,10 +41,12 @@ namespace NevaManagement.Api
             services.AddTransient<IResearcherRepository, ResearcherRepository>();
             services.AddTransient<IProductRepository, ProductRepository>();
             services.AddTransient<ILocationRepository, LocationRepository>();
+            services.AddTransient<IProductUsageService, ProductUsageService>();
 
             // Services
             services.AddTransient<IResearcherService, ResearcherService>();
             services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<IProductUsageRepository, ProductUsageRepository>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

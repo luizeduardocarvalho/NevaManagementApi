@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NevaManagement.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NevaManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(NevaManagementDbContext))]
-    partial class NevaManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220312225117_AddProductUsage")]
+    partial class AddProductUsage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -221,15 +223,11 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<long?>("Product_Id")
                         .HasColumnType("bigint");
 
-                    b.Property<double>("Quantity")
-                        .HasColumnType("double precision");
-
                     b.Property<long?>("Researcher_Id")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("UsageDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("Usage_Date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

@@ -12,6 +12,7 @@ namespace NevaManagement.Infrastructure
         public DbSet<EquipmentUsage> EquipmentUsages { get; set; }
         public DbSet<Organism> Organisms { get; set; }
         public DbSet<Researcher> Researchers { get; set; }
+        public DbSet<ProductUsage> ProductUsages { get; set; }
 
         public NevaManagementDbContext(DbContextOptions<NevaManagementDbContext> options)
             : base(options)

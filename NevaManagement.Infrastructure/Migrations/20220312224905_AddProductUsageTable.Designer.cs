@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NevaManagement.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NevaManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(NevaManagementDbContext))]
-    partial class NevaManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220312224905_AddProductUsageTable")]
+    partial class AddProductUsageTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -208,38 +210,6 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.ToTable("Product");
                 });
 
-            modelBuilder.Entity("NevaManagement.Domain.Models.ProductUsage", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityByDefaultColumn();
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<long?>("Product_Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<double>("Quantity")
-                        .HasColumnType("double precision");
-
-                    b.Property<long?>("Researcher_Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("UsageDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("Usage_Date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Product_Id");
-
-                    b.HasIndex("Researcher_Id");
-
-                    b.ToTable("ProductUsage");
-                });
-
             modelBuilder.Entity("NevaManagement.Domain.Models.Researcher", b =>
                 {
                     b.Property<long>("Id")
@@ -327,21 +297,6 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasForeignKey("Location_Id");
 
                     b.Navigation("Location");
-                });
-
-            modelBuilder.Entity("NevaManagement.Domain.Models.ProductUsage", b =>
-                {
-                    b.HasOne("NevaManagement.Domain.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("Product_Id");
-
-                    b.HasOne("NevaManagement.Domain.Models.Researcher", "Researcher")
-                        .WithMany()
-                        .HasForeignKey("Researcher_Id");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Researcher");
                 });
 #pragma warning restore 612, 618
         }

@@ -44,7 +44,8 @@ namespace NevaManagement.Infrastructure.Repositories
                                             },
                                             Name = x.Name,
                                             Quantity = x.Quantity,
-                                            Unit = x.Unit
+                                            Unit = x.Unit,
+                                            Description = x.Description
                                         })
                                         .FirstOrDefaultAsync();
         }
