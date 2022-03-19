@@ -31,5 +31,21 @@ namespace NevaManagement.Infrastructure.Repositories
                 })
                 .ToListAsync();
         }
+
+        public async Task<GetLastUsedProductDto> GetLastUsedProductByResearcher(long researcherId)
+        {
+            return await this.context.ProductUsages
+                .Where(x => x.Id == researcherId)
+                .OrderBy(x => x.UsageDate)
+                .Select(x => new GetLastUsedProductDto
+                {
+                    ProductId = x.Product.Id,
+                    LocationName = x.Product.Location.Name,
+                    ProductName = x.Product.Name,
+                    Quantity = x.Quantity,
+                    Unit = x.Product.Unit
+                })
+                .LastOrDefaultAsync();
+        }
     }
 }

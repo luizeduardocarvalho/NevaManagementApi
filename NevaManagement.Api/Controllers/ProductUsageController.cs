@@ -26,5 +26,18 @@ namespace NevaManagement.Api.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("GetLastUsedProductByResearcher")]
+        public async Task<IActionResult> GetLastUsedProductByResearcher([FromQuery] long researcherId)
+        {
+            if (researcherId == 0)
+            {
+                return BadRequest();
+            }
+
+            var result = await this.service.GetLastUsedProductByResearcher(researcherId);
+
+            return Ok(result);
+        }
     }
 }

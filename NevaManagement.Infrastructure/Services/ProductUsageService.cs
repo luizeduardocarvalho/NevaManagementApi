@@ -19,5 +19,10 @@ namespace NevaManagement.Infrastructure.Services
         {
             return await this.repository.GetLastUsesByResearcher(researcherId);
         }
+
+        public async Task<GetLastUsedProductDto> GetLastUsedProductByResearcher(long researcherId)
+        {
+            return await this.repository.GetLastUsedProductByResearcher(researcherId);
+        }
     }
 }

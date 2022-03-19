@@ -7,5 +7,6 @@ namespace NevaManagement.Domain.Interfaces.Repositories
     public interface IProductUsageRepository
     {
         Task<IList<GetLastUsesByResearcherDto>> GetLastUsesByResearcher(long researcherId);
+        Task<GetLastUsedProductDto> GetLastUsedProductByResearcher(long researcherId);
     }
 }
