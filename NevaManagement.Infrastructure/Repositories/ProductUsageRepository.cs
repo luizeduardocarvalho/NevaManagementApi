@@ -25,7 +25,7 @@ namespace NevaManagement.Infrastructure.Repositories
                 .Select(x => new GetLastUsesByResearcherDto
                 {
                     Quantity = x.Quantity,
-                    ResearcherName = x.Researcher.Name,
+                    ProductName = x.Product.Name,
                     Unit = x.Product.Unit,
                     UsageDate = x.UsageDate
                 })
