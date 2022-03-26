@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 namespace NevaManagement.Api.Controllers
 {
     [ApiController]
+    [Route("[controller]")]
     public class ProductUsageController : ControllerBase
     {
         private readonly IProductUsageService service;
@@ -36,6 +37,19 @@ namespace NevaManagement.Api.Controllers
             }
 
             var result = await this.service.GetLastUsedProductByResearcher(researcherId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetLastUsesByProduct")]
+        public async Task<IActionResult> GetLastUsesByProduct([FromQuery] long productId)
+        {
+            if (productId == 0)
+            {
+                return BadRequest();
+            }
+
+            var result = await this.service.GetLastUsesByProduct(productId);
 
             return Ok(result);
         }

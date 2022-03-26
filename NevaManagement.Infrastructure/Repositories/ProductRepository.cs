@@ -29,7 +29,19 @@ namespace NevaManagement.Infrastructure.Repositories
                                         }).ToListAsync();
         }
 
-        public async Task<GetDetailedProductDto> GetById(long id)
+        public async Task<GetProductDto> GetById(long id)
+        {
+            return await this.context.Products
+                .Where(x => x.Id == id)
+                .Select(x => new GetProductDto
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                })
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<GetDetailedProductDto> GetDetailedProductById(long id)
         {
             return await this.context.Products
                                         .Where(x => x.Id == id)
@@ -54,6 +66,30 @@ namespace NevaManagement.Infrastructure.Repositories
         {
             await Insert(product);
             return await SaveChanges();
+        }
+
+        public async Task<Product> GetEntityById(long id)
+        {
+            return await this.context.Products.Where(x => x.Id == id).FirstOrDefaultAsync();
+        }
+
+        public new async Task<bool> Insert(Product product)
+        {
+            await this.context.AddAsync(product);
+
+            return await SaveChanges();
+        }
+
+        public new async Task<bool> SaveChanges()
+        {
+            var result = await this.context.SaveChangesAsync();
+
+            if(result > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

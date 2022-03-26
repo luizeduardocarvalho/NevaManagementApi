@@ -21,13 +21,27 @@ namespace NevaManagement.Infrastructure.Repositories
         public async Task<IList<GetLastUsesByResearcherDto>> GetLastUsesByResearcher(long researcherId)
         {
             return await this.context.ProductUsages
-                .Where(x => x.Id == researcherId)
+                .Where(x => x.Researcher.Id == researcherId)
                 .Select(x => new GetLastUsesByResearcherDto
                 {
                     Quantity = x.Quantity,
                     ResearcherName = x.Researcher.Name,
                     Unit = x.Product.Unit,
                     UsageDate = x.UsageDate
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IList<GetLastUseByProductDto>> GetLastUsesByProduct(long productId)
+        {
+            return await this.context.ProductUsages
+                .Where(x => x.Product.Id == productId)
+                .Select(x => new GetLastUseByProductDto
+                {
+                    Quantity = x.Quantity,
+                    ResearcherName = x.Researcher.Name,
+                    Unit = x.Product.Unit,
+                    UseDate = x.UsageDate
                 })
                 .ToListAsync();
         }
@@ -46,6 +60,24 @@ namespace NevaManagement.Infrastructure.Repositories
                     Unit = x.Product.Unit
                 })
                 .LastOrDefaultAsync();
+        }
+
+        public new async Task<bool> SaveChanges()
+        {
+            var result = await this.context.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> Create(ProductUsage productUsage)
+        {
+            await Insert(productUsage);
+            return await SaveChanges();
         }
     }
 }
