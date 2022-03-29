@@ -2,6 +2,7 @@
 using NevaManagement.Domain.Dtos.Location;
 using NevaManagement.Domain.Interfaces.Repositories;
 using NevaManagement.Domain.Models;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,6 +35,23 @@ namespace NevaManagement.Infrastructure.Repositories
             return await this.context.Locations
                                         .Where(x => x.Id == id)
                                         .FirstOrDefaultAsync();
+        }
+
+        public async Task<IList<GetLocationDto>> GetLocations()
+        {
+            return await this.context.Locations
+                .Select(x => new GetLocationDto
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> Create(Location location)
+        {
+            await Insert(location);
+            return await SaveChanges();
         }
     }
 }

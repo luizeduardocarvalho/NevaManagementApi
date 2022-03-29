@@ -9,6 +9,7 @@ using NevaManagement.Domain.Interfaces.Services;
 using NevaManagement.Infrastructure;
 using NevaManagement.Infrastructure.Repositories;
 using NevaManagement.Infrastructure.Services;
+using Newtonsoft.Json.Serialization;
 using System;
 
 namespace NevaManagement.Api
@@ -42,11 +43,13 @@ namespace NevaManagement.Api
             services.AddTransient<IProductRepository, ProductRepository>();
             services.AddTransient<ILocationRepository, LocationRepository>();
             services.AddTransient<IProductUsageService, ProductUsageService>();
+            services.AddTransient<ILocationRepository, LocationRepository>();
 
             // Services
             services.AddTransient<IResearcherService, ResearcherService>();
             services.AddTransient<IProductService, ProductService>();
             services.AddTransient<IProductUsageRepository, ProductUsageRepository>();
+            services.AddTransient<ILocationService, LocationService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

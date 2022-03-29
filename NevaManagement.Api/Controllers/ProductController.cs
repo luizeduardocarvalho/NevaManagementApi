@@ -72,7 +72,7 @@ namespace NevaManagement.Api.Controllers
                     return StatusCode(200, $"Successfully added {addQuantityToProductDto.Quantity} to product.");
                 }
 
-                return StatusCode(500, "Error occurred while adding quantity to product.");
+                return StatusCode(500, "An error occurred while adding quantity to product.");
             }
             catch(Exception ex)
             {
