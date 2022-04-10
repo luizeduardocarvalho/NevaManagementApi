@@ -47,5 +47,40 @@ namespace NevaManagement.Infrastructure.Services
 
             return result;
         }
+
+        public async Task<bool> EditLocation(EditLocationDto editLocationDto)
+        {
+            var result = false;
+            var location = await this.repository.GetEntityById(editLocationDto.Id);
+
+            if(location is not null)
+            {
+                location.Name = editLocationDto.Name;
+                location.Description = editLocationDto.Description;
+
+                if(editLocationDto.SublocationId is not null)
+                {
+                    var subLocation = await this.repository.GetEntityById(editLocationDto.SublocationId.Value);
+                    location.SubLocation = subLocation;
+                }
+
+                try
+                {
+                    result = await this.repository.SaveChanges();
+                }
+                catch
+                {
+                    throw;
+                }
+
+            }
+
+            return result;
+        }
+
+        public async Task<GetDetailedLocationDto> GetLocationById(long locationId)
+        {
+            return await this.repository.GetById(locationId);
+        }
     }
 }
