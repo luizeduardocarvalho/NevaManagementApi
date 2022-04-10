@@ -18,14 +18,17 @@ namespace NevaManagement.Infrastructure.Repositories
             this.context = context;
         }
 
-        public async Task<GetLocationDto> GetById(long id)
+        public async Task<GetDetailedLocationDto> GetById(long id)
         {
             return await this.context.Locations
                                         .Where(x => x.Id == id)
-                                        .Select(x => new GetLocationDto
+                                        .Include(x => x.SubLocation)
+                                        .Select(x => new GetDetailedLocationDto
                                         {
-                                            Id = x.Id,
-                                            Name = x.Name
+                                            Name = x.Name,
+                                            Description = x.Description,
+                                            SubLocationId = x.SubLocation.Id,
+                                            SubLocationName = x.SubLocation.Name
                                         })
                                         .FirstOrDefaultAsync();
         }
@@ -52,6 +55,18 @@ namespace NevaManagement.Infrastructure.Repositories
         {
             await Insert(location);
             return await SaveChanges();
+        }
+
+        public async new Task<bool> SaveChanges()
+        {
+            var result = await this.context.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

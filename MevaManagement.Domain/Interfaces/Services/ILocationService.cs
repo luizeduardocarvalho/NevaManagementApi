@@ -8,5 +8,7 @@ namespace NevaManagement.Domain.Interfaces.Services
     {
         Task<IList<GetLocationDto>> GetLocations();
         Task<bool> AddLocation(AddLocationDto addLocationDto);
+        Task<bool> EditLocation(EditLocationDto editLocationDto);
+        Task<GetDetailedLocationDto> GetLocationById(long locationId);
     }
 }
