@@ -57,7 +57,7 @@ namespace NevaManagement.Infrastructure.Services
         public async Task<bool> EditOrganism(EditOrganismDto editOrganismDto)
         {
             var result = false;
-            var organism = await this.repository.GetEntityById(editOrganismDto.Id);
+            var organism = await this.repository.GetEntityById(editOrganismDto.Id.Value);
 
             if (organism is not null)
             {

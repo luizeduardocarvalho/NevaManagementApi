@@ -5,7 +5,7 @@ namespace NevaManagement.Domain.Dtos.Organism
     public class EditOrganismDto
     {
         [Required]
-        public long Id { get; set; }
+        public long? Id { get; set; }
 
         [Required]
         public string Name { get; set; }
