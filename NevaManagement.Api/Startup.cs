@@ -9,7 +9,6 @@ using NevaManagement.Domain.Interfaces.Services;
 using NevaManagement.Infrastructure;
 using NevaManagement.Infrastructure.Repositories;
 using NevaManagement.Infrastructure.Services;
-using Newtonsoft.Json.Serialization;
 using System;
 
 namespace NevaManagement.Api
