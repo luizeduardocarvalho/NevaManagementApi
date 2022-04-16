@@ -17,10 +17,10 @@ namespace NevaManagement.Api.Controllers
             this.repository = repository;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("GetResearchers")]
+        public async Task<IActionResult> GetResearchers()
         {
-            var researchers = await this.repository.GetAll();
+            var researchers = await this.repository.GetResearchers();
 
             return Ok(researchers);
         }

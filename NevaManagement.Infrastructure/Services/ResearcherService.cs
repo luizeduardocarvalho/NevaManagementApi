@@ -2,6 +2,7 @@
 using NevaManagement.Domain.Interfaces.Repositories;
 using NevaManagement.Domain.Interfaces.Services;
 using NevaManagement.Domain.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NevaManagement.Infrastructure.Services
@@ -23,6 +24,11 @@ namespace NevaManagement.Infrastructure.Services
         public Task<Researcher> GetAll()
         {
             throw new System.NotImplementedException();
+        }
+
+        public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
+        {
+            return await this.repository.GetResearchers();
         }
     }
 }
