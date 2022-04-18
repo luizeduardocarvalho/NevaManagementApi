@@ -44,7 +44,7 @@ namespace NevaManagement.Infrastructure.Services
 
         public async Task<bool> Create(CreateProductDto productDto)
         {
-            var location =  await this.locationRepository.GetEntityById(productDto.LocationId);
+            var location = await this.locationRepository.GetEntityById(productDto.LocationId);
             var product = new Product
             {
                 Description = productDto.Description,
@@ -83,7 +83,7 @@ namespace NevaManagement.Infrastructure.Services
             var product = await this.repository.GetEntityById(useProductDto.ProductId);
             var result = false;
 
-            if(product is not null)
+            if (product is not null)
             {
                 try
                 {
@@ -107,6 +107,36 @@ namespace NevaManagement.Infrastructure.Services
                 {
                     return false;
                 }
+            }
+
+            return result;
+        }
+
+        public async Task<bool> EditProduct(EditProductDto editProductDto)
+        {
+            var result = false;
+            var product = await this.repository.GetEntityById(editProductDto.Id.Value);
+
+            if (product is not null)
+            {
+                product.Name = editProductDto.Name;
+                product.Description = editProductDto.Description;
+
+                try
+                {
+                    if (editProductDto.LocationId is not null)
+                    {
+                        var location = await this.locationRepository.GetEntityById(editProductDto.LocationId.Value);
+                        product.Location = location;
+                    }
+
+                    result = await this.repository.SaveChanges();
+                }
+                catch
+                {
+                    throw;
+                }
+
             }
 
             return result;

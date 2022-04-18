@@ -48,6 +48,7 @@ namespace NevaManagement.Infrastructure.Repositories
                     Id = x.Id,
                     Name = x.Name
                 })
+                .OrderBy(x => x.Id)
                 .ToListAsync();
         }
 

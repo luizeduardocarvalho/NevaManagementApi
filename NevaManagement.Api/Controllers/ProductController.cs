@@ -104,5 +104,30 @@ namespace NevaManagement.Api.Controllers
 
             return StatusCode(500, "Error occurred while using product.");
         }
+
+        [HttpPatch("EditProduct")]
+        public async Task<IActionResult> EditProduct([FromBody] EditProductDto editProductDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await this.service.EditProduct(editProductDto);
+
+                if (result)
+                {
+                    return StatusCode(200, $"Successfully edited {editProductDto.Name}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+            return StatusCode(500, "Error occurred while editing the product.");
+        }
     }
 }
