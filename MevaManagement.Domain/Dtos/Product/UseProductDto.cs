@@ -14,6 +14,8 @@ namespace NevaManagement.Domain.Dtos.Product
         [Range(1, int.MaxValue, ErrorMessage = "Quantity should be greater than 0")]
         public double Quantity { get; set; }
 
+        public string Unit { get; set; }
+
         public string Description { get; set; }
     }
 }
