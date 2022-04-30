@@ -44,17 +44,30 @@ namespace NevaManagement.Infrastructure.Services
 
         public async Task<bool> Create(CreateProductDto productDto)
         {
-            var location = await this.locationRepository.GetEntityById(productDto.LocationId);
-            var product = new Product
+            try
             {
-                Description = productDto.Description,
-                Location = location,
-                Name = productDto.Name,
-                Quantity = productDto.Quantity,
-                Unit = productDto.Unit
-            };
+                var location = await this.locationRepository.GetEntityById(productDto.LocationId.Value);
 
-            return await this.repository.Create(product);
+                if(location is not null)
+                {
+                    var product = new Product
+                    {
+                        Description = productDto.Description,
+                        Location = location,
+                        Name = productDto.Name,
+                        Quantity = productDto.Quantity,
+                        Unit = productDto.Unit
+                    };
+
+                    return await this.repository.Create(product);
+                }
+
+                return false;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         public async Task<bool> AddQuantityToProduct(AddQuantityToProductDto addQuantityToProductDto)

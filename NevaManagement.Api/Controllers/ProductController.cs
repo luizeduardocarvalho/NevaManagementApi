@@ -45,14 +45,27 @@ namespace NevaManagement.Api.Controllers
         [HttpPost("Create")]
         public async Task<IActionResult> Create([FromBody] CreateProductDto productDto)
         {
-            var result = await this.service.Create(productDto);
-
-            if(result)
+            if(!ModelState.IsValid)
             {
-                return Ok("Success");
+                return BadRequest();
             }
 
-            return StatusCode(500, "Error");
+            try
+            {
+                var result = await this.service.Create(productDto);
+
+                if(result)
+                {
+                    return StatusCode(201, $"Successfully created {productDto.Name}.");
+                }
+
+                return StatusCode(500, "An error occurred while creating the product.");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
         }
 
         [HttpPatch("AddQuantity")]
@@ -94,7 +107,7 @@ namespace NevaManagement.Api.Controllers
 
                 if(result)
                 {
-                    return Ok($"Successfully used {useProductDto.Quantity}.");
+                    return Ok($"Successfully used {useProductDto.Quantity}{useProductDto.Unit}.");
                 }
             }
             catch(Exception ex)
