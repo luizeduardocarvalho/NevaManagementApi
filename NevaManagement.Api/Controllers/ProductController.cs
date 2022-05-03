@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NevaManagement.Domain.Dtos.Product;
 using NevaManagement.Domain.Interfaces.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace NevaManagement.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [Produces("application/json")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService service;
@@ -24,8 +26,16 @@ namespace NevaManagement.Api.Controllers
             return Ok(products);
         }
 
-        [HttpGet("GetById")]
-        public async Task<IActionResult> GetById([FromQuery] long id)
+        [HttpGet("GetDetailedProductById")]
+        public async Task<IActionResult> GetDetailedProductById([FromQuery] long id)
+        {
+            var product = await this.service.GetDetailedProductById(id);
+
+            return Ok(product);
+        }
+
+        [HttpGet("GetProductById")]
+        public async Task<IActionResult> GetProductById([FromQuery] long id)
         {
             var product = await this.service.GetById(id);
 
@@ -35,14 +45,102 @@ namespace NevaManagement.Api.Controllers
         [HttpPost("Create")]
         public async Task<IActionResult> Create([FromBody] CreateProductDto productDto)
         {
-            var result = await this.service.Create(productDto);
-
-            if(result)
+            if(!ModelState.IsValid)
             {
-                return Ok("Success");
+                return BadRequest();
             }
 
-            return StatusCode(500, "Error");
+            try
+            {
+                var result = await this.service.Create(productDto);
+
+                if(result)
+                {
+                    return StatusCode(201, $"Successfully created {productDto.Name}.");
+                }
+
+                return StatusCode(500, "An error occurred while creating the product.");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+        [HttpPatch("AddQuantity")]
+        public async Task<IActionResult> AddProductQuantity([FromBody] AddQuantityToProductDto addQuantityToProductDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await this.service.AddQuantityToProduct(addQuantityToProductDto);
+
+                if(result)
+                {
+                    return StatusCode(200, $"Successfully added {addQuantityToProductDto.Quantity} to product.");
+                }
+
+                return StatusCode(500, "An error occurred while adding quantity to product.");
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPatch("UseProduct")]
+        public async Task<IActionResult> UseProduct([FromBody] UseProductDto useProductDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await this.service.UseProduct(useProductDto);
+
+                if(result)
+                {
+                    return Ok($"Successfully used {useProductDto.Quantity}{useProductDto.Unit}.");
+                }
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+            return StatusCode(500, "Error occurred while using product.");
+        }
+
+        [HttpPatch("EditProduct")]
+        public async Task<IActionResult> EditProduct([FromBody] EditProductDto editProductDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await this.service.EditProduct(editProductDto);
+
+                if (result)
+                {
+                    return StatusCode(200, $"Successfully edited {editProductDto.Name}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+            return StatusCode(500, "Error occurred while editing the product.");
         }
     }
 }

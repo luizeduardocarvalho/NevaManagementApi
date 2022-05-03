@@ -1,5 +1,6 @@
 ﻿using NevaManagement.Domain.Dtos.Researcher;
 using NevaManagement.Domain.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NevaManagement.Domain.Interfaces.Services
@@ -8,5 +9,6 @@ namespace NevaManagement.Domain.Interfaces.Services
     {
         Task<Researcher> GetAll();
         Task<bool> Create(CreateResearcherDto researcherDto);
+        Task<IList<GetSimpleResearcherDto>> GetResearchers();
     }
 }
