@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+   heroku: circleci/heroku@1.2.6
+
 jobs:
   build:
     docker:
@@ -15,6 +18,12 @@ jobs:
           command: dotnet build
           
 workflows:
-  build:
+  heroku_deploy:
     jobs:
       - build
+      - heroku/deploy-via-git:
+          requires:
+            - build # only run deploy-via-git job if the build job has completed
+          filters:
+            branches:
+              only: main # only run deploy-via-git job on main branch
