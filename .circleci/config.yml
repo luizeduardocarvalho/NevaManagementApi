@@ -1,10 +1,8 @@
 version: 2.1
 
-orbs:
-   heroku: circleci/heroku@1.2.6
-
 jobs:
   build:
+    build:
     docker:
       - image: mcr.microsoft.com/dotnet/sdk:5.0
 
@@ -16,12 +14,22 @@ jobs:
       - run:
           name: Build
           command: dotnet build
-          
+  deploy:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:5.0
+    steps:
+      - checkout
+      - run:
+          name: Deploy Main to Heroku
+          command: |
+            git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git main --force
+
 workflows:
-  heroku_deploy:
+  version: 2
+  build-deploy:
     jobs:
       - build
-      - heroku/deploy-via-git:
+      - deploy:
           requires:
             - build
           filters:
