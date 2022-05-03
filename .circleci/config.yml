@@ -1,0 +1,29 @@
+version: 2.1
+
+orbs:
+   heroku: circleci/heroku@1.2.6
+
+jobs:
+  build:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:5.0
+
+    steps:
+      - checkout
+      - run:
+          name: Restore 
+          command: dotnet restore
+      - run:
+          name: Build
+          command: dotnet build
+          
+workflows:
+  heroku_deploy:
+    jobs:
+      - build
+      - heroku/deploy-via-git:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
