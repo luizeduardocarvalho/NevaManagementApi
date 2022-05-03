@@ -23,7 +23,7 @@ workflows:
       - build
       - heroku/deploy-via-git:
           requires:
-            - build # only run deploy-via-git job if the build job has completed
+            - build
           filters:
             branches:
-              only: main # only run deploy-via-git job on main branch
+              only: main
