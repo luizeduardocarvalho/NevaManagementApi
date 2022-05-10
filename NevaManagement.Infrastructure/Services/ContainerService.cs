@@ -68,5 +68,29 @@ namespace NevaManagement.Infrastructure.Services
         {
             return await this.repository.GetContainers();
         }
+
+        public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id)
+        {
+            try
+            {
+                return await this.repository.GetChildrenContainers(id);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<GetDetailedContainerDto> GetDetailedContainer(long id)
+        {
+            try
+            {
+                return await this.repository.GetDetailedContainer(id);
+            }
+            catch
+            {
+                throw;
+            }
+        }
     }
 }

@@ -50,5 +50,45 @@ namespace NevaManagement.Api.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet("GetChildrenContainers")]
+        public async Task<IActionResult> GetChildrenCotainers([FromQuery] long containerId)
+        {
+            if (containerId <= 0)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await this.service.GetChildrenContainers(containerId);
+
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("GetDetailedContainer")]
+        public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId)
+        {
+            if (containerId <= 0)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await this.service.GetDetailedContainer(containerId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

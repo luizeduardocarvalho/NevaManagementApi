@@ -35,6 +35,36 @@ namespace NevaManagement.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id)
+        {
+            return await this.context.Containers
+                .Where(container => container.SubContainer.Id == id)
+                .Select(container => new GetSimpleContainerDto 
+                { 
+                    Id = container.Id,
+                    Name = container.Name
+                })
+                .ToListAsync();
+        }
+
+        public async Task<GetDetailedContainerDto> GetDetailedContainer(long id)
+        {
+            return await this.context.Containers
+                .Where(container => container.Id == id)
+                .Include(container => container.Researcher)
+                .Include(container => container.Origin)
+                .Select(container => new GetDetailedContainerDto
+                {
+                    CreationDate = container.CreationDate,
+                    CultureMedia = container.CultureMedia,
+                    Description = container.Description,
+                    Name = container.Name,
+                    OriginName = container.Origin.Name,
+                    ResearcherName = container.Researcher.Name
+                })
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Container> GetEntityById(long id)
         {
             return await this.context.Containers.Where(x => x.Id == id).SingleOrDefaultAsync();
