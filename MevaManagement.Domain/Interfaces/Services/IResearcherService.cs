@@ -1,14 +1,8 @@
-﻿using NevaManagement.Domain.Dtos.Researcher;
-using NevaManagement.Domain.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿namespace NevaManagement.Domain.Interfaces.Services;
 
-namespace NevaManagement.Domain.Interfaces.Services
+public interface IResearcherService
 {
-    public interface IResearcherService
-    {
-        Task<Researcher> GetAll();
-        Task<bool> Create(CreateResearcherDto researcherDto);
-        Task<IList<GetSimpleResearcherDto>> GetResearchers();
-    }
+    Task<Researcher> GetAll();
+    Task<bool> Create(CreateResearcherDto researcherDto);
+    Task<IList<GetSimpleResearcherDto>> GetResearchers();
 }

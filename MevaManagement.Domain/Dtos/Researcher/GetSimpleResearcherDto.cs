@@ -1,8 +1,7 @@
-﻿namespace NevaManagement.Domain.Dtos.Researcher
+﻿namespace NevaManagement.Domain.Dtos.Researcher;
+
+public class GetSimpleResearcherDto
 {
-    public class GetSimpleResearcherDto
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-    }
+    public long Id { get; set; }
+    public string Name { get; set; }
 }

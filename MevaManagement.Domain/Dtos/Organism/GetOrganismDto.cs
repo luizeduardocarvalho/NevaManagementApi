@@ -1,8 +1,7 @@
-﻿namespace NevaManagement.Domain.Dtos.Organism
+﻿namespace NevaManagement.Domain.Dtos.Organism;
+
+public class GetOrganismDto
 {
-    public class GetOrganismDto
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-    }
+    public long Id { get; set; }
+    public string Name { get; set; }
 }

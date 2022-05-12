@@ -1,52 +1,47 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using NevaManagement.Domain.Dtos.Researcher;
-using NevaManagement.Domain.Interfaces.Repositories;
-using NevaManagement.Domain.Models;
-using System.Threading.Tasks;
+﻿using NevaManagement.Domain.Dtos.Researcher;
 
-namespace NevaManagement.Api.Controllers
+namespace NevaManagement.Api.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class ResearcherController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class ResearcherController : ControllerBase
+    private readonly IResearcherRepository repository;
+
+    public ResearcherController(IResearcherRepository repository)
     {
-        private readonly IResearcherRepository repository;
+        this.repository = repository;
+    }
 
-        public ResearcherController(IResearcherRepository repository)
+    [HttpGet("GetResearchers")]
+    public async Task<IActionResult> GetResearchers()
+    {
+        var researchers = await this.repository.GetResearchers();
+
+        return Ok(researchers);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateResearcherDto researcherDto)
+    {
+        if(!ModelState.IsValid)
         {
-            this.repository = repository;
+            return BadRequest();
         }
 
-        [HttpGet("GetResearchers")]
-        public async Task<IActionResult> GetResearchers()
+        var researcher = new Researcher()
         {
-            var researchers = await this.repository.GetResearchers();
+            Email = researcherDto.Email,
+            Name = researcherDto.Name
+        };
 
-            return Ok(researchers);
+        var result = await this.repository.Create(researcher);
+
+        if(result)
+        {
+            return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateResearcherDto researcherDto)
-        {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
-            var researcher = new Researcher()
-            {
-                Email = researcherDto.Email,
-                Name = researcherDto.Name
-            };
-
-            var result = await this.repository.Create(researcher);
-
-            if(result)
-            {
-                return Ok(result);
-            }
-
-            return StatusCode(500, "Error");
-        }
+        return StatusCode(500, "Error");
     }
 }

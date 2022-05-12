@@ -1,10 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NevaManagement.Domain.Dtos.ProductUsage;
-using NevaManagement.Domain.Interfaces.Repositories;
-using NevaManagement.Domain.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using NevaManagement.Domain.Dtos.ProductUsage;
 
 namespace NevaManagement.Infrastructure.Repositories
 {
@@ -50,7 +44,7 @@ namespace NevaManagement.Infrastructure.Repositories
         {
             return await this.context.ProductUsages
                 .Where(x => x.Id == researcherId)
-                .OrderBy(x => x.UsageDate)
+                .OrderByDescending(x => x.UsageDate)
                 .Select(x => new GetLastUsedProductDto
                 {
                     ProductId = x.Product.Id,
@@ -59,7 +53,7 @@ namespace NevaManagement.Infrastructure.Repositories
                     Quantity = x.Quantity,
                     Unit = x.Product.Unit
                 })
-                .LastOrDefaultAsync();
+                .FirstOrDefaultAsync();
         }
 
         public new async Task<bool> SaveChanges()

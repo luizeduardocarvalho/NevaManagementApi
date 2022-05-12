@@ -1,32 +1,27 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿namespace NevaManagement.Domain.Models;
 
-namespace NevaManagement.Domain.Models
+[Table("Organism")]
+public class Organism : BaseEntity
 {
-    [Table("Organism")]
-    public class Organism : BaseEntity
-    {
-        [MaxLength(100)]
-        public string Name { get; set; }
+    [MaxLength(100)]
+    public string Name { get; set; }
 
-        public string Type { get; set; }
+    public string Type { get; set; }
 
-        public string Description { get; set; }
+    public string Description { get; set; }
 
-        [Column("Collection_Date")]
-        public DateTimeOffset CollectionDate { get; set; }
+    [Column("Collection_Date")]
+    public DateTimeOffset CollectionDate { get; set; }
 
-        [Column("Collection_Location")]
-        public string CollectionLocation { get; set; }
+    [Column("Collection_Location")]
+    public string CollectionLocation { get; set; }
 
-        [Column("Isolation_Date")]
-        public DateTimeOffset IsolationDate { get; set; }
+    [Column("Isolation_Date")]
+    public DateTimeOffset IsolationDate { get; set; }
 
-        [ForeignKey("Origin_Id")]
-        public Organism Origin { get; set; }
+    [ForeignKey("Origin_Id")]
+    public Organism Origin { get; set; }
 
-        [Column("Origin_Part")]
-        public string OriginPart { get; set; }
-    }
+    [Column("Origin_Part")]
+    public string OriginPart { get; set; }
 }

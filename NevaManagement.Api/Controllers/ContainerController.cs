@@ -1,94 +1,87 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using NevaManagement.Domain.Dtos.Container;
-using NevaManagement.Domain.Interfaces.Services;
-using System;
-using System.Threading.Tasks;
+﻿namespace NevaManagement.Api.Controllers;
 
-namespace NevaManagement.Api.Controllers
+[ApiController]
+[Route("[controller]")]
+[Produces("application/json")]
+public class ContainerController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    [Produces("application/json")]
-    public class ContainerController : ControllerBase
+    private readonly IContainerService service;
+
+    public ContainerController(IContainerService service)
     {
-        private readonly IContainerService service;
+        this.service = service;
+    }
 
-        public ContainerController(IContainerService service)
+    [HttpGet("GetContainers")]
+    public async Task<IActionResult> GetContainers()
+    {
+        var locations = await this.service.GetContainers();
+
+        return Ok(locations);
+    }
+
+    [HttpPost("AddContainer")]
+    public async Task<IActionResult> AddContainer([FromBody] AddContainerDto addContainerDto)
+    {
+        if (!ModelState.IsValid)
         {
-            this.service = service;
+            return BadRequest();
         }
 
-        [HttpGet("GetContainers")]
-        public async Task<IActionResult> GetContainers()
+        try
         {
-            var locations = await this.service.GetContainers();
+            var result = await this.service.AddContainer(addContainerDto);
 
-            return Ok(locations);
+            if (result)
+            {
+                return StatusCode(201, $"Successfully created {addContainerDto.Name}.");
+            }
+
+            return StatusCode(500, "An error occurred while creating the container.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet("GetChildrenContainers")]
+    public async Task<IActionResult> GetChildrenCotainers([FromQuery] long containerId)
+    {
+        if (containerId <= 0)
+        {
+            return BadRequest();
         }
 
-        [HttpPost("AddContainer")]
-        public async Task<IActionResult> AddContainer([FromBody] AddContainerDto addContainerDto)
+        try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
+            var result = await this.service.GetChildrenContainers(containerId);
 
-            try
-            {
-                var result = await this.service.AddContainer(addContainerDto);
+            return Ok(result);
+        }
+        catch(Exception ex)
+        {
+            return StatusCode(500, ex.Message);
+        }
+    }
 
-                if (result)
-                {
-                    return StatusCode(201, $"Successfully created {addContainerDto.Name}.");
-                }
-
-                return StatusCode(500, "An error occurred while creating the container.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+    [HttpGet("GetDetailedContainer")]
+    public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId)
+    {
+        if (containerId <= 0)
+        {
+            return BadRequest();
         }
 
-        [HttpGet("GetChildrenContainers")]
-        public async Task<IActionResult> GetChildrenCotainers([FromQuery] long containerId)
+        try
         {
-            if (containerId <= 0)
-            {
-                return BadRequest();
-            }
+            var result = await this.service.GetDetailedContainer(containerId);
 
-            try
-            {
-                var result = await this.service.GetChildrenContainers(containerId);
-
-                return Ok(result);
-            }
-            catch(Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return Ok(result);
         }
-
-        [HttpGet("GetDetailedContainer")]
-        public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId)
+        catch (Exception ex)
         {
-            if (containerId <= 0)
-            {
-                return BadRequest();
-            }
-
-            try
-            {
-                var result = await this.service.GetDetailedContainer(containerId);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return StatusCode(500, ex.Message);
         }
     }
 }

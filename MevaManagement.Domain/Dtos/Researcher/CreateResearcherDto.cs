@@ -1,14 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace NevaManagement.Domain.Dtos.Researcher;
 
-namespace NevaManagement.Domain.Dtos.Researcher
+public class CreateResearcherDto
 {
-    public class CreateResearcherDto
-    {
-        [Required]
-        public string Name { get; set; }
+    [Required]
+    public string Name { get; set; }
 
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-    }
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
 }

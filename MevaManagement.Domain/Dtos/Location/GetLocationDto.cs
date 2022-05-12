@@ -1,8 +1,7 @@
-﻿namespace NevaManagement.Domain.Dtos.Location
+﻿namespace NevaManagement.Domain.Dtos.Location;
+
+public class GetLocationDto
 {
-    public class GetLocationDto
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-    }
+    public long Id { get; set; }
+    public string Name { get; set; }
 }

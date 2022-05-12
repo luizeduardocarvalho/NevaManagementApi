@@ -1,34 +1,26 @@
-﻿using NevaManagement.Domain.Dtos.Researcher;
-using NevaManagement.Domain.Interfaces.Repositories;
-using NevaManagement.Domain.Interfaces.Services;
-using NevaManagement.Domain.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿namespace NevaManagement.Infrastructure.Services;
 
-namespace NevaManagement.Infrastructure.Services
+public class ResearcherService : IResearcherService
 {
-    public class ResearcherService : IResearcherService
+    private readonly IResearcherRepository repository;
+
+    public ResearcherService(IResearcherRepository repository)
     {
-        private readonly IResearcherRepository repository;
+        this.repository = repository;
+    }
 
-        public ResearcherService(IResearcherRepository repository)
-        {
-            this.repository = repository;
-        }
+    public Task<bool> Create(CreateResearcherDto researcherDto)
+    {
+        throw new System.NotImplementedException();
+    }
 
-        public Task<bool> Create(CreateResearcherDto researcherDto)
-        {
-            throw new System.NotImplementedException();
-        }
+    public Task<Researcher> GetAll()
+    {
+        throw new System.NotImplementedException();
+    }
 
-        public Task<Researcher> GetAll()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
-        {
-            return await this.repository.GetResearchers();
-        }
+    public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
+    {
+        return await this.repository.GetResearchers();
     }
 }
