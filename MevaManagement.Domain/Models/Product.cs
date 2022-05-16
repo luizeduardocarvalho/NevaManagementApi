@@ -14,4 +14,6 @@ public class Product : BaseEntity
     public double Quantity { get; set; }
 
     public string Unit { get; set; }
+
+    public DateTimeOffset ExpirationDate { get; set; }
 }

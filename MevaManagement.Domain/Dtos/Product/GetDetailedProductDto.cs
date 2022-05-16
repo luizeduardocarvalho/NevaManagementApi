@@ -8,4 +8,5 @@ public class GetDetailedProductDto
     public string Description { get; set; }
     public string Unit { get; set; }
     public GetLocationDto Location { get; set; }
+    public DateTimeOffset ExpirationDate { get; set; }
 }
