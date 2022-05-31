@@ -7,17 +7,10 @@ jobs:
     description: Setup and run application tests
     steps:
       - checkout
-      - run: dotnet build
-      - run: dotnet test --no-build --logger "trx"
       - run:
-          name: test results
-          when: always
-          command: |
-              dotnet tool install -g trx2junit
-              export PATH="$PATH:/root/.dotnet/tools"
-              trx2junit tests/**/TestResults/*.trx
-      - store_test_results:
-          path: tests/TestResults
+          name: Running Tests
+          command: dotnet test
+          working_directory: NevaManagement.Tests
   build:
     build:
     docker:
