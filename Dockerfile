@@ -9,7 +9,8 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["NevaManagement.Api/NevaManagement.Api.csproj", "NevaManagement.Api/"]
 COPY ["NevaManagement.Infrastructure/NevaManagement.Infrastructure.csproj", "NevaManagement.Infrastructure/"]
-COPY ["MevaManagement.Domain/NevaManagement.Domain.csproj", "MevaManagement.Domain/"]
+COPY ["NevaManagement.Domain/NevaManagement.Domain.csproj", "NevaManagement.Domain/"]
+COPY ["NevaManagement.Tests/NevaManagement.Tests.csproj", "NevaManagement.Tests/"]
 RUN dotnet restore "NevaManagement.Api/NevaManagement.Api.csproj"
 COPY . .
 WORKDIR "/src/NevaManagement.Api"
