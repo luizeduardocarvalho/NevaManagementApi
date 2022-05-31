@@ -1,0 +1,11 @@
+﻿global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using NevaManagement.Domain.Dtos.Container;
+global using NevaManagement.Domain.Interfaces.Repositories;
+global using NevaManagement.Domain.Interfaces.Services;
+global using NevaManagement.Domain.Models;
+global using System;
+global using System.Collections.Generic;
+global using System.Net;
+global using System.Text.Json;
+global using System.Threading.Tasks;
