@@ -39,8 +39,8 @@ jobs:
           name: Deploy Main to Heroku
           command: |
             docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
-            docker build . -t NevaManagement-Api
-            docker tag NevaManagement-Api registry.heroku.com/$HEROKU_APP_NAME/web
+            docker build . -t nevamanagement-api
+            docker tag nevamanagement-api registry.heroku.com/$HEROKU_APP_NAME/web
             docker push registry.heroku.com/$HEROKU_APP_NAME/web
 
 workflows:
