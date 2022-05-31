@@ -43,6 +43,7 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
     {
         return await this.context.Containers
             .Where(container => container.Id == id)
+            .Include(container => container.ArticleContainerList)
             .Include(container => container.Researcher)
             .Include(container => container.Origin)
             .Select(container => new GetDetailedContainerDto
@@ -52,14 +53,19 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
                 Description = container.Description,
                 Name = container.Name,
                 OriginName = container.Origin.Name,
-                ResearcherName = container.Researcher.Name
+                ResearcherName = container.Researcher.Name,
+                DoiList = container.ArticleContainerList
+                    .Select(doi => doi.Article.Doi)
+                    .ToList()
             })
             .FirstOrDefaultAsync();
     }
 
     public async Task<Container> GetEntityById(long id)
     {
-        return await this.context.Containers.Where(x => x.Id == id).SingleOrDefaultAsync();
+        return await this.context.Containers
+            .Include("DoiList")
+            .Where(x => x.Id == id).SingleOrDefaultAsync();
     }
 
     public async new Task<bool> SaveChanges()
