@@ -12,7 +12,7 @@ jobs:
           command: dotnet restore
       - run:
           name: "Run Application Tests"
-          command: dotnet test -v n
+          command: dotnet test --collect:"Code Coverage"
   build:
     build:
     docker:
