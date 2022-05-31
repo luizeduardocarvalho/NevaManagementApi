@@ -33,6 +33,9 @@ jobs:
           version: 20.10.14
           docker_layer_caching: false
       - run:
+          name: Install Docker client
+          command: apk add docker-cli
+      - run:
           name: Deploy Main to Heroku
           command: |
             docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
