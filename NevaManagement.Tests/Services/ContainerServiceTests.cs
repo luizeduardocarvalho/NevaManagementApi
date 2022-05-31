@@ -83,7 +83,7 @@ namespace NevaManagement.Tests.Services
                 .ReturnsAsync(simpleContainerDtoListExpected);
 
             // Act
-            await containerService.GetContainers();
+            await containerService.GetChildrenContainers(id);
 
             // Arrange
             containerRepositoryMock.Verify(repository => repository.GetChildrenContainers(id), Times.Once);
