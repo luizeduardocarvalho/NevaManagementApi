@@ -13,14 +13,19 @@ public class ContainerController : ControllerBase
     }
 
     [HttpGet("GetContainers")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetSimpleContainerDto>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetContainers()
     {
         var locations = await this.service.GetContainers();
-
         return Ok(locations);
     }
 
     [HttpPost("AddContainer")]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddContainer([FromBody] AddContainerDto addContainerDto)
     {
         if (!ModelState.IsValid)
@@ -28,44 +33,31 @@ public class ContainerController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.AddContainer(addContainerDto);
+        await this.service.AddContainer(addContainerDto);
 
-            if (result)
-            {
-                return StatusCode(201, $"Successfully created {addContainerDto.Name}.");
-            }
-
-            return StatusCode(500, "An error occurred while creating the container.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return StatusCode(201, $"Successfully created {addContainerDto.Name}.");
     }
 
     [HttpGet("GetChildrenContainers")]
-    public async Task<IActionResult> GetChildrenCotainers([FromQuery] long containerId)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetSimpleContainerDto>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetChildrenContainers([FromQuery] long containerId)
     {
         if (containerId <= 0)
         {
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.GetChildrenContainers(containerId);
+        var result = await this.service.GetChildrenContainers(containerId);
 
-            return Ok(result);
-        }
-        catch(Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return Ok(result);
     }
 
     [HttpGet("GetDetailedContainer")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetDetailedContainerDto>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId)
     {
         if (containerId <= 0)
@@ -73,15 +65,8 @@ public class ContainerController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.GetDetailedContainer(containerId);
+        var result = await this.service.GetDetailedContainer(containerId);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return Ok(result);
     }
 }

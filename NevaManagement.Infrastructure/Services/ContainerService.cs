@@ -29,10 +29,15 @@ public class ContainerService : IContainerService
 
         try
         {
+
             if (addContainerDto.SubContainerId is not null)
             {
                 var subContainer = await this.repository.GetEntityById(addContainerDto.SubContainerId.Value);
-                container.SubContainer = subContainer;
+                if (subContainer is not null)
+                {
+                    container.SubContainer = subContainer;
+                    container.ArticleContainerList = subContainer.ArticleContainerList;
+                }
             }
 
             var researcher = await this.researcherRepository.GetEntityById(addContainerDto.ResearcherId.Value);
@@ -51,7 +56,7 @@ public class ContainerService : IContainerService
         }
         catch
         {
-            throw;
+            throw new Exception($"An error occurred while creating {addContainerDto.Name}.");
         }
 
         return result;
@@ -59,7 +64,14 @@ public class ContainerService : IContainerService
 
     public async Task<IList<GetSimpleContainerDto>> GetContainers()
     {
-        return await this.repository.GetContainers();
+        try
+        {
+            return await this.repository.GetContainers();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while getting all containers.");
+        }
     }
 
     public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id)
@@ -70,7 +82,7 @@ public class ContainerService : IContainerService
         }
         catch
         {
-            throw;
+            throw new Exception("An error occurred while getting the children for the container.");
         }
     }
 
@@ -82,7 +94,7 @@ public class ContainerService : IContainerService
         }
         catch
         {
-            throw;
+            throw new Exception("An error occurred while getting the container.");
         }
     }
 }
