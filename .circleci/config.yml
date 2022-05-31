@@ -1,6 +1,16 @@
 version: 2.1
-
+  
 jobs:
+  test:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:6.0
+    description: Setup and run application tests
+    steps:
+      - checkout
+      - run:
+          name: Running Tests
+          command: dotnet test
+          working_directory: NevaManagement.Tests
   build:
     build:
     docker:
@@ -28,6 +38,7 @@ workflows:
   version: 2
   build-deploy:
     jobs:
+      - test
       - build
       - deploy:
           requires:
