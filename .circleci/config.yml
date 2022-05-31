@@ -29,6 +29,9 @@ jobs:
       - image: mcr.microsoft.com/dotnet/sdk:6.0
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: false
       - run:
           name: Deploy Main to Heroku
           command: |
