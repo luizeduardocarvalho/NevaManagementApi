@@ -41,7 +41,7 @@ public class ProductController : ControllerBase
     [HttpPost("Create")]
     public async Task<IActionResult> Create([FromBody] CreateProductDto productDto)
     {
-        if(!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
             return BadRequest();
         }
@@ -50,14 +50,14 @@ public class ProductController : ControllerBase
         {
             var result = await this.service.Create(productDto);
 
-            if(result)
+            if (result)
             {
                 return StatusCode(201, $"Successfully created {productDto.Name}.");
             }
 
             return StatusCode(500, "An error occurred while creating the product.");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
         }
@@ -76,14 +76,14 @@ public class ProductController : ControllerBase
         {
             var result = await this.service.AddQuantityToProduct(addQuantityToProductDto);
 
-            if(result)
+            if (result)
             {
                 return StatusCode(200, $"Successfully added {addQuantityToProductDto.Quantity} to product.");
             }
 
             return StatusCode(500, "An error occurred while adding quantity to product.");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
         }
@@ -92,7 +92,7 @@ public class ProductController : ControllerBase
     [HttpPatch("UseProduct")]
     public async Task<IActionResult> UseProduct([FromBody] UseProductDto useProductDto)
     {
-        if(!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
             return BadRequest();
         }
@@ -101,12 +101,12 @@ public class ProductController : ControllerBase
         {
             var result = await this.service.UseProduct(useProductDto);
 
-            if(result)
+            if (result)
             {
                 return Ok($"Successfully used {useProductDto.Quantity}{useProductDto.Unit}.");
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return StatusCode(500, ex.Message);
         }
