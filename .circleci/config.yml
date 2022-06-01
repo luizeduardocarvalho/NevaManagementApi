@@ -1,5 +1,8 @@
 version: 2.1
-  
+
+orbs:
+  heroku: circleci/heroku@1.2.6
+
 jobs:
   test:
     docker:
@@ -25,24 +28,14 @@ jobs:
           name: Build
           command: dotnet build
   deploy:
-    docker:
-      - image: alpine:3.16
+    executor: heroku/default
     steps:
-      - checkout
       - setup_remote_docker:
           version: 20.10.14
           docker_layer_caching: false
-      - run:
-          name: Install Docker client
-          command: apk add docker-cli
-      - run:
-          name: Deploy Main to Heroku
-          command: |
-            docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
-            docker build . -t nevamanagement-api
-            docker tag nevamanagement-api registry.heroku.com/$HEROKU_APP_NAME/web
-            docker push registry.heroku.com/$HEROKU_APP_NAME/web
-
+      - checkout
+      - heroku/install
+      - heroku/push-docker-image
 workflows:
   version: 2
   build-deploy:
@@ -52,6 +45,8 @@ workflows:
       - deploy:
           requires:
             - build
+          post-steps:
+            - heroku/release-docker-image
           filters:
             branches:
               only: main
