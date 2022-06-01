@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NevaManagement.Api", "NevaM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NevaManagement.Infrastructure", "NevaManagement.Infrastructure\NevaManagement.Infrastructure.csproj", "{5901CE73-A055-4594-A0AC-49D2E4067025}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NevaManagement.Domain", "MevaManagement.Domain\NevaManagement.Domain.csproj", "{7607631D-D101-4730-A36B-43C4646DDE27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NevaManagement.Domain", "NevaManagement.Domain\NevaManagement.Domain.csproj", "{7607631D-D101-4730-A36B-43C4646DDE27}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NevaManagement.Tests", "NevaManagement.Tests\NevaManagement.Tests.csproj", "{9FF9D6A9-4F80-4D8F-A255-992BE6668914}"
 EndProject
