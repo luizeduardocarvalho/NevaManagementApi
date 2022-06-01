@@ -20,7 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MevaManagement.Domain\NevaManagement.Domain.csproj" />
     <ProjectReference Include="..\NevaManagement.Domain\NevaManagement.Domain.csproj" />
   </ItemGroup>
 
