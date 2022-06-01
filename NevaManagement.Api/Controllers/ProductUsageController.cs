@@ -35,13 +35,8 @@ public class ProductUsageController : ControllerBase
         try
         {
             var result = await this.service.GetLastUsedProductByResearcher(researcherId);
-
-            if(result is not null)
-            {
-                return Ok(result);
-            }
-
-            return StatusCode(500, "Error");
+            
+            return Ok(result);
         }
         catch (Exception ex)
         {

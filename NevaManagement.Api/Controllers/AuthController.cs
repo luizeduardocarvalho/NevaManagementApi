@@ -38,8 +38,11 @@ public class AuthController : ControllerBase
 
         return Ok(new
         {
-            user,
-            token
+            user.Id,
+            user.Name,
+            user.Email,
+            token,
+            user
         });
     }
 
