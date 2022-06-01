@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NevaManagement.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NevaManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(NevaManagementDbContext))]
-    partial class NevaManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220528184826_AddDoi")]
+    partial class AddDoi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,10 +32,15 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("Container_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Doi")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Container_Id");
 
                     b.ToTable("Article");
                 });
@@ -46,17 +53,17 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ArticleId")
+                    b.Property<long?>("Article_Id")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("ContainerId")
+                    b.Property<long?>("Container_Id")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArticleId");
+                    b.HasIndex("Article_Id");
 
-                    b.HasIndex("ContainerId");
+                    b.HasIndex("Container_Id");
 
                     b.ToTable("ArticleContainer");
                 });
@@ -301,36 +308,34 @@ namespace NevaManagement.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Email")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
-
-                    b.Property<string>("Password")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Role")
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.ToTable("Researcher");
                 });
 
+            modelBuilder.Entity("NevaManagement.Domain.Models.Article", b =>
+                {
+                    b.HasOne("NevaManagement.Domain.Models.Container", null)
+                        .WithMany("DoiList")
+                        .HasForeignKey("Container_Id");
+                });
+
             modelBuilder.Entity("NevaManagement.Domain.Models.ArticleContainer", b =>
                 {
                     b.HasOne("NevaManagement.Domain.Models.Article", "Article")
-                        .WithMany("ArticleContainerList")
-                        .HasForeignKey("ArticleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("Article_Id");
 
                     b.HasOne("NevaManagement.Domain.Models.Container", "Container")
-                        .WithMany("ArticleContainerList")
-                        .HasForeignKey("ContainerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("Container_Id");
 
                     b.Navigation("Article");
 
@@ -421,14 +426,9 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Navigation("Researcher");
                 });
 
-            modelBuilder.Entity("NevaManagement.Domain.Models.Article", b =>
-                {
-                    b.Navigation("ArticleContainerList");
-                });
-
             modelBuilder.Entity("NevaManagement.Domain.Models.Container", b =>
                 {
-                    b.Navigation("ArticleContainerList");
+                    b.Navigation("DoiList");
                 });
 #pragma warning restore 612, 618
         }

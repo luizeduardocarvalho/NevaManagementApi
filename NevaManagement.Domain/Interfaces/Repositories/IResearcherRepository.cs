@@ -7,4 +7,5 @@ public interface IResearcherRepository
     Task<Researcher> GetEntityById(long id);
     Task<bool> SaveChanges();
     Task<IList<GetSimpleResearcherDto>> GetResearchers();
+    Task<Researcher> GetByEmailAndPassword(string email, string password);
 }

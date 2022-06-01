@@ -23,4 +23,16 @@ public class ResearcherService : IResearcherService
     {
         return await this.repository.GetResearchers();
     }
+
+    public async Task<Researcher> GetByEmailAndPassword(string email, string password)
+    {
+        try
+        {
+            return await repository.GetByEmailAndPassword(email, password);
+        }
+        catch
+        {
+            throw new Exception("User not found");
+        }
+    }
 }

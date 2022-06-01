@@ -39,6 +39,13 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
             .SingleOrDefaultAsync();
     }
 
+    public async Task<Researcher> GetByEmailAndPassword(string email, string password)
+    {
+        return await this.context.Researchers
+            .Where(researcher => researcher.Email.Equals(email) && researcher.Password.Equals(password))
+            .FirstOrDefaultAsync();
+    }
+
     public new async Task<bool> SaveChanges()
     {
         var result = await this.context.SaveChangesAsync();
