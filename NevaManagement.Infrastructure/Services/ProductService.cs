@@ -51,15 +51,16 @@ public class ProductService : IProductService
                 Location = location,
                 Name = productDto.Name,
                 Quantity = productDto.Quantity,
-                Unit = productDto.Unit
+                Unit = productDto.Unit,
+                ExpirationDate = productDto.ExpirationDate.UtcDateTime
             };
 
             return await this.repository.Insert(product);
 
         }
-        catch
+        catch(DbUpdateException ex)
         {
-            throw;
+            throw new DbUpdateException("An error occurred while creating the new product.");
         }
     }
 

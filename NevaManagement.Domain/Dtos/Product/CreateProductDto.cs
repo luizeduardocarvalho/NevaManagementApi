@@ -14,4 +14,6 @@ public class CreateProductDto
 
     [Required]
     public string Unit { get; set; }
+
+    public DateTimeOffset ExpirationDate { get; set; }
 }
