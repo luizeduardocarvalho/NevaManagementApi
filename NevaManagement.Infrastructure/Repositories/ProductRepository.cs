@@ -54,12 +54,6 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
                                     .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> Create(Product product)
-    {
-        await Insert(product);
-        return await SaveChanges();
-    }
-
     public async Task<Product> GetEntityById(long id)
     {
         return await this.context.Products.Where(x => x.Id == id).FirstOrDefaultAsync();

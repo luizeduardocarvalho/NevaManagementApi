@@ -40,21 +40,22 @@ public class ProductService : IProductService
         {
             var location = await this.locationRepository.GetEntityById(productDto.LocationId.Value);
 
-            if (location is not null)
+            if (location is null)
             {
-                var product = new Product
-                {
-                    Description = productDto.Description,
-                    Location = location,
-                    Name = productDto.Name,
-                    Quantity = productDto.Quantity,
-                    Unit = productDto.Unit
-                };
-
-                return await this.repository.Create(product);
+                return false;
             }
 
-            return false;
+            var product = new Product
+            {
+                Description = productDto.Description,
+                Location = location,
+                Name = productDto.Name,
+                Quantity = productDto.Quantity,
+                Unit = productDto.Unit
+            };
+
+            return await this.repository.Insert(product);
+
         }
         catch
         {
