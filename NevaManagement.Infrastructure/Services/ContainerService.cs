@@ -5,15 +5,21 @@ public class ContainerService : IContainerService
     private readonly IContainerRepository repository;
     private readonly IResearcherRepository researcherRepository;
     private readonly IOrganismRepository organismRepository;
+    private readonly IArticleService articleService;
+    private readonly IArticleContainerRepository articleContainerRepository;
 
     public ContainerService(
         IContainerRepository repository,
         IResearcherRepository researcherRepository,
-        IOrganismRepository organismRepository)
+        IOrganismRepository organismRepository,
+        IArticleService articleService,
+        IArticleContainerRepository articleContainerRepository)
     {
         this.repository = repository;
         this.researcherRepository = researcherRepository;
         this.organismRepository = organismRepository;
+        this.articleService = articleService;
+        this.articleContainerRepository = articleContainerRepository;
     }
 
     public async Task<bool> AddContainer(AddContainerDto addContainerDto)
@@ -52,7 +58,34 @@ public class ContainerService : IContainerService
                 container.Origin = organism;
             }
 
-            result = await this.repository.Create(container);
+            var articles = await this.articleService.GetArticles(addContainerDto.DoiList.ToArray());
+
+            if (!articles.Any())
+            {
+                foreach (var doi in addContainerDto.DoiList)
+                {
+                    var article = new Article()
+                    {
+                        Doi = doi
+                    };
+
+                    articles.Add(article);
+                }
+
+            }
+
+            foreach (var article in articles)
+            {
+                var articleContainer = new ArticleContainer()
+                {
+                    ArticleId = article.Id,
+                    Container = container
+                };
+
+                await this.articleContainerRepository.Insert(articleContainer);
+            }
+
+            result = await this.articleContainerRepository.SaveChanges();
         }
         catch
         {

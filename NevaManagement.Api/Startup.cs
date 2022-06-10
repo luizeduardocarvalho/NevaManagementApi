@@ -86,6 +86,8 @@ public class Startup
         services.AddTransient<ILocationRepository, LocationRepository>();
         services.AddTransient<IOrganismRepository, OrganismRepository>();
         services.AddTransient<IContainerRepository, ContainerRepository>();
+        services.AddTransient<IArticleRepository, ArticleRepository>();
+        services.AddTransient<IArticleContainerRepository, ArticleContainerRepository>();
 
         // Services
         services.AddTransient<IResearcherService, ResearcherService>();
@@ -97,6 +99,7 @@ public class Startup
         services.AddTransient<ITokenService, TokenService>();
         services.AddTransient<IEncryptService, EncryptService>();
         services.AddTransient<IAuthService, AuthService>();
+        services.AddTransient<IArticleService, ArticleService>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

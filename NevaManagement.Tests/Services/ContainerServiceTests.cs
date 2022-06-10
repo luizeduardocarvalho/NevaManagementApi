@@ -5,22 +5,28 @@ public sealed class ContainerServiceTests
     private readonly Mock<IContainerRepository> containerRepositoryMock;
     private readonly Mock<IResearcherRepository> researcherRepositoryMock;
     private readonly Mock<IOrganismRepository> organismRepositoryMock;
+    private readonly Mock<IArticleService> articleRepository;
     private readonly ContainerService containerService;
+    private readonly Mock<IArticleContainerRepository> articleContainerRepository;
 
     public ContainerServiceTests()
     {
         containerRepositoryMock = new Mock<IContainerRepository>();
         researcherRepositoryMock = new Mock<IResearcherRepository>();
         organismRepositoryMock = new Mock<IOrganismRepository>();
+        articleRepository = new Mock<IArticleService>();
+        articleContainerRepository = new Mock<IArticleContainerRepository>();
 
         containerService = new ContainerService(
             containerRepositoryMock.Object,
             researcherRepositoryMock.Object,
-            organismRepositoryMock.Object);
+            organismRepositoryMock.Object,
+            articleRepository.Object,
+            articleContainerRepository.Object);
     }
 
     [Fact]
-    public async Task GetContainers_ShouldThrowException()
+    public async Task GetContainersShouldThrowException()
     {
         // Arrange
         var simpleContainerDtoListExpected = new List<GetSimpleContainerDto>
@@ -44,7 +50,7 @@ public sealed class ContainerServiceTests
     }
 
     [Fact]
-    public async Task GetContainers_WithRepositoryException_ShouldThrowException()
+    public async Task GetContainersWithRepositoryExceptionShouldThrowException()
     {
         // Arrange
         containerRepositoryMock
@@ -62,7 +68,7 @@ public sealed class ContainerServiceTests
     [Theory]
     [InlineData(1)]
     [InlineData(100)]
-    public async Task GetChildrenContainers_ShouldThrowException(long id)
+    public async Task GetChildrenContainersShouldThrowException(long id)
     {
         // Arrange
         var simpleContainerDtoListExpected = new List<GetSimpleContainerDto>
@@ -88,7 +94,7 @@ public sealed class ContainerServiceTests
     [Theory]
     [InlineData(0)]
     [InlineData(-10)]
-    public async Task GetChildrenContainers_WithRepositoryException_ShouldThrowException(long id)
+    public async Task GetChildrenContainersWithRepositoryExceptionShouldThrowException(long id)
     {
         // Arrange
         containerRepositoryMock

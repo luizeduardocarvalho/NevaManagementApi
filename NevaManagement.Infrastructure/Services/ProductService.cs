@@ -21,12 +21,26 @@ public class ProductService : IProductService
 
     public async Task<IEnumerable<GetProductDto>> GetAll()
     {
-        return await this.repository.GetAll();
+        try
+        {
+            return await this.repository.GetAll();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An error occurred while getting all products.");
+        }
     }
 
     public async Task<GetDetailedProductDto> GetDetailedProductById(long id)
     {
-        return await this.repository.GetDetailedProductById(id);
+        try
+        {
+            return await this.repository.GetDetailedProductById(id);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An error occurred while getting a detailed product.");
+        }
     }
 
     public async Task<GetProductDto> GetById(long id)

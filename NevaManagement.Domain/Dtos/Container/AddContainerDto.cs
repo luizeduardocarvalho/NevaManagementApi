@@ -2,7 +2,7 @@
 
 public class AddContainerDto
 {
-    public string DoiList { get; set; }
+    public string[] DoiList { get; set; }
     public string CultureMedia { get; set; }
     [Required]
     public string Name { get; set; }

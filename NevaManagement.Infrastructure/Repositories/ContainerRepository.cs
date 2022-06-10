@@ -64,7 +64,8 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
     public async Task<Container> GetEntityById(long id)
     {
         return await this.context.Containers
-            .Include("DoiList")
+            .Include(x => x.ArticleContainerList)
+            .ThenInclude(x => x.Article)
             .Where(x => x.Id == id).SingleOrDefaultAsync();
     }
 
