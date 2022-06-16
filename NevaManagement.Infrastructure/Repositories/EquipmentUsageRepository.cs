@@ -30,4 +30,17 @@ public class EquipmentUsageRepository : BaseRepository<EquipmentUsage>, IEquipme
             })
             .ToListAsync();
     }
+
+    public async Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageByDay(long equipmentId, DateTimeOffset startDate)
+    {
+        return await this.context.EquipmentUsages
+            .Where(equipmentUsage => equipmentUsage.EquipmentId == equipmentId)
+            .Where(equipmentUsage => equipmentUsage.StartDate.Day == startDate.Day)
+            .Select(equipmentUsage => new GetEquipmentUsageDto
+            {
+                StartDate = equipmentUsage.StartDate,
+                EndDate = equipmentUsage.EndDate
+            })
+            .ToListAsync();
+    }
 }

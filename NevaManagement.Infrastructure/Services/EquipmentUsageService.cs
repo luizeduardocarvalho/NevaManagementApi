@@ -58,6 +58,21 @@ public class EquipmentUsageService : IEquipmentUsageService
     {
         try
         {
+            var dates = await this.repository
+                .GetEquipmentUsageByDay(
+                    useEquipmentDto.EquipmentId,
+                    useEquipmentDto.StartDate);
+
+            foreach (var date in dates)
+            {
+                if(useEquipmentDto.EndDate > date.StartDate && useEquipmentDto.EndDate < date.EndDate ||
+                    useEquipmentDto.StartDate > date.StartDate && useEquipmentDto.StartDate < date.EndDate ||
+                    useEquipmentDto.StartDate < date.StartDate && useEquipmentDto.EndDate > date.EndDate)
+                {
+                    return false;
+                }
+            }
+
             var equipmentUsage = new EquipmentUsage()
             {
                 ResearcherId = useEquipmentDto.ResearcherId,

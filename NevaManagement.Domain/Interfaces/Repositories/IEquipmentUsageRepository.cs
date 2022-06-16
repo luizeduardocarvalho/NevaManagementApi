@@ -3,4 +3,5 @@
 public interface IEquipmentUsageRepository : IBaseRepository<EquipmentUsage>
 {
     Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageByEquipment(long equipmentId);
+    Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageByDay(long equipmentId, DateTimeOffset startDate);
 }
