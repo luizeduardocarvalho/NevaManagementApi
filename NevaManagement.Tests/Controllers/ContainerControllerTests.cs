@@ -31,7 +31,7 @@ public sealed class ContainerControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        containerService.Verify(service => service.GetContainers(), Times.Once);
+        containerService.Verify(service => service.GetContainers(), Moq.Times.Once); ;
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class ContainerControllerTests
 
         // Assert
         result.Should().BeEquivalentTo(expectedResult);
-        containerService.Verify(service => service.AddContainer(newContainer), Times.Once);
+        containerService.Verify(service => service.AddContainer(newContainer), Moq.Times.Once);
 
     }
 
@@ -103,7 +103,7 @@ public sealed class ContainerControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        containerService.Verify(service => service.GetChildrenContainers(id), Times.Once);
+        containerService.Verify(service => service.GetChildrenContainers(id), Moq.Times.Once);
     }
 
     [Theory]
@@ -140,7 +140,7 @@ public sealed class ContainerControllerTests
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-        containerService.Verify(service => service.GetDetailedContainer(id), Times.Once);
+        containerService.Verify(service => service.GetDetailedContainer(id), Moq.Times.Once);
     }
 
     [Theory]
