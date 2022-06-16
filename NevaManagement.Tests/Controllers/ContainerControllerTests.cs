@@ -35,7 +35,7 @@ public sealed class ContainerControllerTests
     }
 
     [Fact]
-    public async Task AddContainers_WithValidInput_ShouldReturn201Created()
+    public async Task AddContainersWithValidInputShouldReturn201Created()
     {
         // Arrange
         var newContainer = new AddContainerDto()

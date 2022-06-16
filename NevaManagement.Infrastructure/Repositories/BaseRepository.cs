@@ -11,6 +11,11 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
         table = this.context.Set<T>();
     }
 
+    public async Task<T> GetById(long id)
+    {
+        return await this.table.FindAsync(id);
+    }
+
     public async Task Insert(T entity)
     {
         await this.table.AddAsync(entity);

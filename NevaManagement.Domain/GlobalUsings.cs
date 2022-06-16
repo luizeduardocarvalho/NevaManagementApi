@@ -1,6 +1,8 @@
 ﻿global using NevaManagement.Domain.Dtos.Article;
 global using NevaManagement.Domain.Dtos.Auth;
 global using NevaManagement.Domain.Dtos.Container;
+global using NevaManagement.Domain.Dtos.Equipment;
+global using NevaManagement.Domain.Dtos.EquipmentUsage;
 global using NevaManagement.Domain.Dtos.Location;
 global using NevaManagement.Domain.Dtos.Organism;
 global using NevaManagement.Domain.Dtos.Product;

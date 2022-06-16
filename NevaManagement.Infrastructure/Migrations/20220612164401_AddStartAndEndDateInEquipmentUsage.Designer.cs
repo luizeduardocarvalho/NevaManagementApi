@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NevaManagement.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NevaManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(NevaManagementDbContext))]
-    partial class NevaManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220612164401_AddStartAndEndDateInEquipmentUsage")]
+    partial class AddStartAndEndDateInEquipmentUsage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,10 +144,10 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("EquipmentId")
+                    b.Property<long?>("Equipment_Id")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("ResearcherId")
+                    b.Property<long?>("Researcher_Id")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("StartDate")
@@ -153,9 +155,9 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId");
+                    b.HasIndex("Equipment_Id");
 
-                    b.HasIndex("ResearcherId");
+                    b.HasIndex("Researcher_Id");
 
                     b.ToTable("EquipmentUsage");
                 });
@@ -370,16 +372,12 @@ namespace NevaManagement.Infrastructure.Migrations
             modelBuilder.Entity("NevaManagement.Domain.Models.EquipmentUsage", b =>
                 {
                     b.HasOne("NevaManagement.Domain.Models.Equipment", "Equipment")
-                        .WithMany("EquipmentUsages")
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("Equipment_Id");
 
                     b.HasOne("NevaManagement.Domain.Models.Researcher", "Researcher")
-                        .WithMany("EquipmentUsages")
-                        .HasForeignKey("ResearcherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("Researcher_Id");
 
                     b.Navigation("Equipment");
 
@@ -436,16 +434,6 @@ namespace NevaManagement.Infrastructure.Migrations
             modelBuilder.Entity("NevaManagement.Domain.Models.Container", b =>
                 {
                     b.Navigation("ArticleContainerList");
-                });
-
-            modelBuilder.Entity("NevaManagement.Domain.Models.Equipment", b =>
-                {
-                    b.Navigation("EquipmentUsages");
-                });
-
-            modelBuilder.Entity("NevaManagement.Domain.Models.Researcher", b =>
-                {
-                    b.Navigation("EquipmentUsages");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NevaManagement.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NevaManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(NevaManagementDbContext))]
-    partial class NevaManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220613122731_ModifyManyToManyRelationshipEquipmentUsage")]
+    partial class ModifyManyToManyRelationshipEquipmentUsage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,7 +147,13 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<long>("EquipmentId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("Equipment_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("ResearcherId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Researcher_Id")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("StartDate")
@@ -153,9 +161,9 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId");
+                    b.HasIndex("Equipment_Id");
 
-                    b.HasIndex("ResearcherId");
+                    b.HasIndex("Researcher_Id");
 
                     b.ToTable("EquipmentUsage");
                 });
@@ -371,15 +379,11 @@ namespace NevaManagement.Infrastructure.Migrations
                 {
                     b.HasOne("NevaManagement.Domain.Models.Equipment", "Equipment")
                         .WithMany("EquipmentUsages")
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Equipment_Id");
 
                     b.HasOne("NevaManagement.Domain.Models.Researcher", "Researcher")
                         .WithMany("EquipmentUsages")
-                        .HasForeignKey("ResearcherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Researcher_Id");
 
                     b.Navigation("Equipment");
 

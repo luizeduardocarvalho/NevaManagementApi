@@ -1,3 +1,5 @@
+using NevaManagement.Api.Extensions;
+
 namespace NevaManagement.Api;
 
 public class Startup
@@ -78,28 +80,10 @@ public class Startup
                 };
             });
 
-        // Repositories
-        services.AddTransient<IResearcherRepository, ResearcherRepository>();
-        services.AddTransient<IProductRepository, ProductRepository>();
-        services.AddTransient<ILocationRepository, LocationRepository>();
-        services.AddTransient<IProductUsageService, ProductUsageService>();
-        services.AddTransient<ILocationRepository, LocationRepository>();
-        services.AddTransient<IOrganismRepository, OrganismRepository>();
-        services.AddTransient<IContainerRepository, ContainerRepository>();
-        services.AddTransient<IArticleRepository, ArticleRepository>();
-        services.AddTransient<IArticleContainerRepository, ArticleContainerRepository>();
+        services.ConfigureRepositories();
+        services.ConfigureServices();
 
-        // Services
-        services.AddTransient<IResearcherService, ResearcherService>();
-        services.AddTransient<IProductService, ProductService>();
-        services.AddTransient<IProductUsageRepository, ProductUsageRepository>();
-        services.AddTransient<ILocationService, LocationService>();
-        services.AddTransient<IOrganismService, OrganismService>();
-        services.AddTransient<IContainerService, ContainerService>();
-        services.AddTransient<ITokenService, TokenService>();
-        services.AddTransient<IEncryptService, EncryptService>();
-        services.AddTransient<IAuthService, AuthService>();
-        services.AddTransient<IArticleService, ArticleService>();
+        services.ConfigureAutoMapper();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -123,7 +107,7 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapControllers().RequireAuthorization();
+            endpoints.MapControllers(); //.RequireAuthorization();
         });
     }
 
