@@ -10,12 +10,6 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
         this.context = context;
     }
 
-    public async Task<bool> Create(Container container)
-    {
-        await Insert(container);
-        return await SaveChanges();
-    }
-
     public async Task<IList<GetSimpleContainerDto>> GetContainers()
     {
         return await this.context.Containers
@@ -67,17 +61,5 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
             .Include(x => x.ArticleContainerList)
             .ThenInclude(x => x.Article)
             .Where(x => x.Id == id).SingleOrDefaultAsync();
-    }
-
-    public async new Task<bool> SaveChanges()
-    {
-        var result = await this.context.SaveChangesAsync();
-
-        if (result > 0)
-        {
-            return true;
-        }
-
-        return false;
     }
 }

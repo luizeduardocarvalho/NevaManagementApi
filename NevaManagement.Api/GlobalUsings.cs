@@ -17,6 +17,8 @@ global using NevaManagement.Api.Middlewares;
 global using NevaManagement.Domain.Dtos.Auth;
 global using NevaManagement.Domain.Dtos.Container;
 global using NevaManagement.Domain.Dtos.Equipment;
+global using NevaManagement.Domain.Dtos.Product;
+global using NevaManagement.Domain.Dtos.Researcher;
 global using NevaManagement.Domain.Interfaces.Repositories;
 global using NevaManagement.Domain.Interfaces.Services;
 global using NevaManagement.Domain.Models;

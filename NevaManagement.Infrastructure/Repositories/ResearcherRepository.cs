@@ -15,12 +15,6 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
         return await this.context.Researchers.ToListAsync();
     }
 
-    public async Task<bool> Create(Researcher researcher)
-    {
-        await Insert(researcher);
-        return await SaveChanges();
-    }
-
     public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
     {
         return await this.context.Researchers
@@ -32,29 +26,10 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
                 .ToListAsync();
     }
 
-    public async Task<Researcher> GetEntityById(long id)
-    {
-        return await this.context.Researchers
-            .Where(x => x.Id == id)
-            .SingleOrDefaultAsync();
-    }
-
     public async Task<Researcher> GetByEmailAndPassword(string email, string password)
     {
         return await this.context.Researchers
             .Where(researcher => researcher.Email.Equals(email) && researcher.Password.Equals(password))
             .FirstOrDefaultAsync();
-    }
-
-    public new async Task<bool> SaveChanges()
-    {
-        var result = await this.context.SaveChangesAsync();
-
-        if (result > 0)
-        {
-            return true;
-        }
-
-        return false;
     }
 }

@@ -25,11 +25,6 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
         var result = await this.context.SaveChangesAsync();
 
-        if (result > 0)
-        {
-            return true;
-        }
-
-        return false;
+        return result > 0;
     }
 }

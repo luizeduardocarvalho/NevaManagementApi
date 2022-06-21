@@ -1,10 +1,7 @@
 ﻿namespace NevaManagement.Domain.Interfaces.Repositories;
 
-public interface ILocationRepository
+public interface ILocationRepository : IBaseRepository<Location>
 {
-    Task<GetDetailedLocationDto> GetById(long id);
-    Task<Location> GetEntityById(long id);
+    Task<GetDetailedLocationDto> GetByDetailedLocationId(long id);
     Task<IList<GetLocationDto>> GetLocations();
-    Task<bool> Create(Location location);
-    Task<bool> SaveChanges();
 }

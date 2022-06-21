@@ -9,7 +9,7 @@ public class EquipmentUsageService : IEquipmentUsageService
         this.repository = repository;
     }
 
-    public async Task<dynamic> GetEquipmentUsageCalendar(long equipmentId)
+    public async Task<IList<EquipmentUsageCalendarDto>> GetEquipmentUsageCalendar(long equipmentId)
     {
         try
         {
@@ -23,22 +23,27 @@ public class EquipmentUsageService : IEquipmentUsageService
                     group day by day.StartDate.Day
                 )
                 group days by months.Key into all
-                select new
+                select new EquipmentUsageCalendarDto
                 {
                     Month = all.Key,
                     Days = all.Select(x =>
-                      new
+                      new Day
                       {
-                          Day = x.Key,
-                          Times = x.Select(t => new { t.StartDate, t.EndDate })
-                      })
+                          DayNumber = x.Key,
+                          Appointments = x.Select(t => 
+                            new Appointment 
+                            { 
+                                StartDate = t.StartDate,
+                                EndDate = t.EndDate 
+                            }).ToList()
+                      }).ToList()
                 };
 
-            return nestedDates;
+            return nestedDates.ToList();
         }
         catch
         {
-            throw new Exception("An error occurred while getting the equipment usage calendar");
+            throw new Exception("An error occurred while getting the equipment usage calendar.");
         }
     }
 

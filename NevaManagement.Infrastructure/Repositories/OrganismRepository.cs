@@ -18,7 +18,7 @@ public class OrganismRepository : BaseRepository<Organism>, IOrganismRepository
         this.context = context;
     }
 
-    public async Task<GetDetailedOrganismDto> GetById(long id)
+    public async Task<GetDetailedOrganismDto> GetDetailedOrganismById(long id)
     {
         return await this.context.Organisms
                                     .Where(x => x.Id == id)

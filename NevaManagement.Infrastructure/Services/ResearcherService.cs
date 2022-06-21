@@ -9,19 +9,16 @@ public class ResearcherService : IResearcherService
         this.repository = repository;
     }
 
-    public Task<bool> Create(CreateResearcherDto researcherDto)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public Task<Researcher> GetAll()
-    {
-        throw new System.NotImplementedException();
-    }
-
     public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
     {
-        return await this.repository.GetResearchers();
+        try
+        {
+            return await this.repository.GetResearchers();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while getting researchers.");
+        }
     }
 
     public async Task<Researcher> GetByEmailAndPassword(string email, string password)
@@ -33,6 +30,25 @@ public class ResearcherService : IResearcherService
         catch
         {
             throw new Exception("User not found");
+        }
+    }
+
+    public async Task<bool> Create(CreateResearcherDto researcher)
+    {
+        var newResearcher = new Researcher()
+        {
+            Name = researcher.Name,
+            Email = researcher.Email
+        };
+
+        try
+        {
+            await this.repository.Insert(newResearcher);
+            return await this.repository.SaveChanges();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while creating the researcher.");
         }
     }
 }

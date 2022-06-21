@@ -25,17 +25,18 @@ public class LocationService : ILocationService
 
         if (addLocationDto.SublocationId is not null)
         {
-            var sublocation = await this.repository.GetEntityById(addLocationDto.SublocationId.Value);
-            location.SubLocation = sublocation;
+            var subLocation = await this.repository.GetById(addLocationDto.SublocationId.Value);
+            location.SubLocation = subLocation;
         }
 
         try
         {
-            result = await this.repository.Create(location);
+            await this.repository.Insert(location);
+            result = await this.repository.SaveChanges();
         }
         catch
         {
-            throw;
+            throw new Exception("An error occurred while adding the location.");
         }
 
         return result;
@@ -44,7 +45,7 @@ public class LocationService : ILocationService
     public async Task<bool> EditLocation(EditLocationDto editLocationDto)
     {
         var result = false;
-        var location = await this.repository.GetEntityById(editLocationDto.Id);
+        var location = await this.repository.GetById(editLocationDto.Id);
 
         if (location is not null)
         {
@@ -53,7 +54,7 @@ public class LocationService : ILocationService
 
             if (editLocationDto.SublocationId is not null)
             {
-                var subLocation = await this.repository.GetEntityById(editLocationDto.SublocationId.Value);
+                var subLocation = await this.repository.GetById(editLocationDto.SublocationId.Value);
                 location.SubLocation = subLocation;
             }
 
@@ -63,7 +64,7 @@ public class LocationService : ILocationService
             }
             catch
             {
-                throw;
+                throw new Exception("An error occurred while updating the location.");
             }
 
         }
@@ -73,6 +74,13 @@ public class LocationService : ILocationService
 
     public async Task<GetDetailedLocationDto> GetLocationById(long locationId)
     {
-        return await this.repository.GetById(locationId);
+        try
+        {
+            return await this.repository.GetByDetailedLocationId(locationId);
+        }
+        catch
+        {
+            throw new Exception("An error occurred while getting the location.");
+        }
     }
 }

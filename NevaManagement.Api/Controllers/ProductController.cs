@@ -1,6 +1,4 @@
-﻿using NevaManagement.Domain.Dtos.Product;
-
-namespace NevaManagement.Api.Controllers;
+﻿namespace NevaManagement.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -46,22 +44,11 @@ public class ProductController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.Create(productDto);
+        var result = await this.service.Create(productDto);
 
-            if (result)
-            {
-                return StatusCode(201, $"Successfully created {productDto.Name}.");
-            }
-
-            return StatusCode(500, "An error occurred while creating the product.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
-
+        return result ? 
+            StatusCode(201, $"Successfully created {productDto.Name}.") :
+            StatusCode(500, "An error occurred while creating the product.");
     }
 
     [HttpPatch("AddQuantity")]
@@ -72,21 +59,11 @@ public class ProductController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.AddQuantityToProduct(addQuantityToProductDto);
+        var result = await this.service.AddQuantityToProduct(addQuantityToProductDto);
 
-            if (result)
-            {
-                return StatusCode(200, $"Successfully added {addQuantityToProductDto.Quantity} to product.");
-            }
-
-            return StatusCode(500, "An error occurred while adding quantity to product.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return result ?
+            StatusCode(200, $"Successfully added {addQuantityToProductDto.Quantity} to product.") :
+            StatusCode(500, "An error occurred while adding quantity to product.");
     }
 
     [HttpPatch("UseProduct")]
@@ -97,21 +74,11 @@ public class ProductController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.UseProduct(useProductDto);
+        var result = await this.service.UseProduct(useProductDto);
 
-            if (result)
-            {
-                return Ok($"Successfully used {useProductDto.Quantity}{useProductDto.Unit}.");
-            }
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
-
-        return StatusCode(500, "Error occurred while using product.");
+        return result ?
+            Ok($"Successfully used {useProductDto.Quantity}{useProductDto.Unit}.") :
+            StatusCode(500, "Error occurred while using product.");
     }
 
     [HttpPatch("EditProduct")]
@@ -122,20 +89,10 @@ public class ProductController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.EditProduct(editProductDto);
+        var result = await this.service.EditProduct(editProductDto);
 
-            if (result)
-            {
-                return StatusCode(200, $"Successfully edited {editProductDto.Name}.");
-            }
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
-
-        return StatusCode(500, "Error occurred while editing the product.");
+        return result ?
+            StatusCode(200, $"Successfully edited {editProductDto.Name}.") :
+            StatusCode(500, "Error occurred while editing the product.");
     }
 }

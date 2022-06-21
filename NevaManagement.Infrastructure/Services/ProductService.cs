@@ -45,14 +45,14 @@ public class ProductService : IProductService
 
     public async Task<GetProductDto> GetById(long id)
     {
-        return await this.repository.GetById(id);
+        return await this.repository.GetProductById(id);
     }
 
     public async Task<bool> Create(CreateProductDto productDto)
     {
         try
         {
-            var location = await this.locationRepository.GetEntityById(productDto.LocationId.Value);
+            var location = await this.locationRepository.GetById(productDto.LocationId.Value);
 
             if (location is null)
             {
@@ -69,10 +69,11 @@ public class ProductService : IProductService
                 ExpirationDate = productDto.ExpirationDate.UtcDateTime
             };
 
-            return await this.repository.Insert(product);
+            await this.repository.Insert(product);
+            return await this.repository.SaveChanges();
 
         }
-        catch(DbUpdateException ex)
+        catch (DbUpdateException ex)
         {
             throw new DbUpdateException("An error occurred while creating the new product.");
         }
@@ -80,86 +81,89 @@ public class ProductService : IProductService
 
     public async Task<bool> AddQuantityToProduct(AddQuantityToProductDto addQuantityToProductDto)
     {
-        var product = await this.repository.GetEntityById(addQuantityToProductDto.ProductId);
-        var result = false;
+        var product = await this.repository.GetById(addQuantityToProductDto.ProductId);
 
-        if (product is not null)
+        if (product is null)
         {
-            try
-            {
-                product.Quantity += addQuantityToProductDto.Quantity;
-                result = await this.repository.SaveChanges();
-            }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
 
-        return result;
+        try
+        {
+            product.Quantity += addQuantityToProductDto.Quantity;
+            return await this.repository.SaveChanges();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while adding quantity to product.");
+        }
     }
 
     public async Task<bool> UseProduct(UseProductDto useProductDto)
     {
-        var product = await this.repository.GetEntityById(useProductDto.ProductId);
-        var result = false;
+        var product = await this.repository.GetById(useProductDto.ProductId);
 
-        if (product is not null)
+        if (product is null)
         {
-            try
-            {
-                product.Quantity -= useProductDto.Quantity;
-                result = await this.repository.SaveChanges();
+            return false;
+        }
 
-                var researcher = await this.researcherRepository.GetEntityById(useProductDto.ResearcherId);
 
-                var productUsage = new ProductUsage
-                {
-                    Researcher = researcher,
-                    Product = product,
-                    UsageDate = DateTimeOffset.Now,
-                    Description = useProductDto.Description,
-                    Quantity = useProductDto.Quantity
-                };
+        try
+        {
+            product.Quantity -= useProductDto.Quantity;
+            var result = await this.repository.SaveChanges();
 
-                result = await this.productUsageRepository.Create(productUsage);
-            }
-            catch
+            if (!result)
             {
                 return false;
             }
-        }
 
-        return result;
+            var researcher = await this.researcherRepository.GetById(useProductDto.ResearcherId);
+
+            var productUsage = new ProductUsage
+            {
+                Researcher = researcher,
+                Product = product,
+                UsageDate = DateTimeOffset.Now,
+                Description = useProductDto.Description,
+                Quantity = useProductDto.Quantity
+            };
+
+            await this.productUsageRepository.Insert(productUsage);
+            return await this.productUsageRepository.SaveChanges();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while using the product.");
+        }
     }
 
     public async Task<bool> EditProduct(EditProductDto editProductDto)
     {
-        var result = false;
-        var product = await this.repository.GetEntityById(editProductDto.Id.Value);
+        var product = await this.repository.GetById(editProductDto.Id.Value);
 
-        if (product is not null)
+        if (product is null)
         {
-            product.Name = editProductDto.Name;
-            product.Description = editProductDto.Description;
-
-            try
-            {
-                if (editProductDto.LocationId is not null)
-                {
-                    var location = await this.locationRepository.GetEntityById(editProductDto.LocationId.Value);
-                    product.Location = location;
-                }
-
-                result = await this.repository.SaveChanges();
-            }
-            catch
-            {
-                throw;
-            }
-
+            return false;
         }
 
-        return result;
+        product.Name = editProductDto.Name;
+        product.Description = editProductDto.Description;
+
+        try
+        {
+            if (editProductDto.LocationId is not null)
+            {
+                var location = await this.locationRepository.GetById(editProductDto.LocationId.Value);
+                product.Location = location;
+            }
+
+            return await this.repository.SaveChanges();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while editing the product.");
+        }
     }
 }

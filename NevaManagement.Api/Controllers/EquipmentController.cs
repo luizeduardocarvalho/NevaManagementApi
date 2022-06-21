@@ -33,7 +33,7 @@ public class EquipmentController : ControllerBase
     {
         var result = await this.service.GetDetailedEquipment(id);
 
-        return Ok("The equipment was updated successfully.");
+        return Ok(result);
     }
 
     [HttpPatch("EditEquipment")]
@@ -41,11 +41,8 @@ public class EquipmentController : ControllerBase
     {
         var result = await this.service.EditEquipment(equipmentDto);
 
-        if(result)
-        {
-            return Ok($"{equipmentDto.Name} was updated successfully.");
-        }
-
-        return StatusCode(500, $"An error occurred while updating {equipmentDto.Name}.");
+        return result ?
+            Ok($"{equipmentDto.Name} was updated successfully.") :
+            StatusCode(500, $"An error occurred while updating {equipmentDto.Name}.");
     }
 }

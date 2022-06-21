@@ -21,7 +21,8 @@ public class AuthService : IAuthService
 
         try
         {
-            return await this.repository.Create(user);
+            await this.repository.Insert(user);
+            return await this.repository.SaveChanges();
         }
         catch
         {

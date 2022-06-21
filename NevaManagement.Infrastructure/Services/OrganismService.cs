@@ -1,4 +1,6 @@
-﻿namespace NevaManagement.Infrastructure.Services;
+﻿using System.Data;
+
+namespace NevaManagement.Infrastructure.Services;
 
 public class OrganismService : IOrganismService
 {
@@ -16,7 +18,6 @@ public class OrganismService : IOrganismService
 
     public async Task<bool> AddOrganism(AddOrganismDto addOrganismDto)
     {
-        var result = false;
         var organism = new Organism
         {
             Description = addOrganismDto.Description,
@@ -30,26 +31,25 @@ public class OrganismService : IOrganismService
 
         if (addOrganismDto.OriginOrganismId is not null)
         {
-            var originOrganism = await this.repository.GetEntityById(addOrganismDto.OriginOrganismId.Value);
+            var originOrganism = await this.repository.GetById(addOrganismDto.OriginOrganismId.Value);
             organism.Origin = originOrganism;
         }
 
         try
         {
-            result = await this.repository.Create(organism);
+            await this.repository.Insert(organism);
+            return await this.repository.SaveChanges();
         }
         catch
         {
-            throw;
+            throw new Exception("An error occurred while adding the organism.");
         }
-
-        return result;
     }
 
     public async Task<bool> EditOrganism(EditOrganismDto editOrganismDto)
     {
         var result = false;
-        var organism = await this.repository.GetEntityById(editOrganismDto.Id.Value);
+        var organism = await this.repository.GetById(editOrganismDto.Id.Value);
 
         if (organism is not null)
         {
@@ -72,6 +72,13 @@ public class OrganismService : IOrganismService
 
     public async Task<GetDetailedOrganismDto> GetOrganismById(long organismId)
     {
-        return await this.repository.GetById(organismId);
+        try
+        {
+            return await this.repository.GetDetailedOrganismById(organismId);
+        }
+        catch
+        {
+            throw new Exception("An error occurred while getting organism.");
+        }
     }
 }

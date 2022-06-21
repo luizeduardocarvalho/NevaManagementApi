@@ -18,7 +18,7 @@ public class EquipmentUsageControllerTests
         // Arrange
         equipmentUsageServiceMock
             .Setup(service => service.GetEquipmentUsageCalendar(1))
-            .ReturnsAsync(It.IsAny<dynamic>);
+            .ReturnsAsync(It.IsAny<IList<EquipmentUsageCalendarDto>>);
 
         // Act
         var result = await controller.GetEquipmentUsageCalendar(1);

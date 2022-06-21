@@ -1,11 +1,8 @@
 ﻿namespace NevaManagement.Domain.Interfaces.Repositories;
 
-public interface IProductRepository
+public interface IProductRepository : IBaseRepository<Product>
 {
     Task<IEnumerable<GetProductDto>> GetAll();
-    Task<GetProductDto> GetById(long id);
+    Task<GetProductDto> GetProductById(long id);
     Task<GetDetailedProductDto> GetDetailedProductById(long id);
-    Task<Product> GetEntityById(long id);
-    Task<bool> Insert(Product product);
-    Task<bool> SaveChanges();
 }

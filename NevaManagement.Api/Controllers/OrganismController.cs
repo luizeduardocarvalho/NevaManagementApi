@@ -30,21 +30,11 @@ public class OrganismController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.AddOrganism(addOrganismDto);
+        var result = await this.service.AddOrganism(addOrganismDto);
 
-            if (result)
-            {
-                return StatusCode(201, $"Successfully created {addOrganismDto.Name}.");
-            }
-
-            return StatusCode(500, "An error occurred while creating the organism.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return result ?
+            StatusCode(201, $"Successfully created {addOrganismDto.Name}.") :
+            StatusCode(500, "An error occurred while creating the organism.");
     }
 
     [HttpPatch("EditOrganism")]
@@ -55,21 +45,11 @@ public class OrganismController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.EditOrganism(editOrganismDto);
+        var result = await this.service.EditOrganism(editOrganismDto);
 
-            if (result)
-            {
-                return StatusCode(200, $"Successfully edited {editOrganismDto.Name}.");
-            }
-
-            return StatusCode(500, "An error occurred while editing the organism.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return result ?
+            Ok($"Successfully edited {editOrganismDto.Name}.") :
+            StatusCode(500, "An error occurred while editing the organism.");
     }
 
     [HttpGet("GetOrganismById")]
@@ -82,11 +62,6 @@ public class OrganismController : ControllerBase
 
         var location = await this.service.GetOrganismById(organismId);
 
-        if (location is not null)
-        {
-            return Ok(location);
-        }
-
-        return StatusCode(500, $"Error finding organism with id {organismId}");
+        return Ok(location);
     }
 }

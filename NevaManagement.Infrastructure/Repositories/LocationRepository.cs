@@ -10,26 +10,19 @@ public class LocationRepository : BaseRepository<Location>, ILocationRepository
         this.context = context;
     }
 
-    public async Task<GetDetailedLocationDto> GetById(long id)
+    public async Task<GetDetailedLocationDto> GetByDetailedLocationId(long id)
     {
         return await this.context.Locations
-                                    .Where(x => x.Id == id)
-                                    .Include(x => x.SubLocation)
-                                    .Select(x => new GetDetailedLocationDto
-                                    {
-                                        Name = x.Name,
-                                        Description = x.Description,
-                                        SubLocationId = x.SubLocation.Id,
-                                        SubLocationName = x.SubLocation.Name
-                                    })
-                                    .FirstOrDefaultAsync();
-    }
-
-    public async Task<Location> GetEntityById(long id)
-    {
-        return await this.context.Locations
-                                    .Where(x => x.Id == id)
-                                    .FirstOrDefaultAsync();
+            .Where(x => x.Id == id)
+            .Include(x => x.SubLocation)
+            .Select(x => new GetDetailedLocationDto
+            {
+                Name = x.Name,
+                Description = x.Description,
+                SubLocationId = x.SubLocation.Id,
+                SubLocationName = x.SubLocation.Name
+            })
+            .FirstOrDefaultAsync();
     }
 
     public async Task<IList<GetLocationDto>> GetLocations()
@@ -42,23 +35,5 @@ public class LocationRepository : BaseRepository<Location>, ILocationRepository
             })
             .OrderBy(x => x.Id)
             .ToListAsync();
-    }
-
-    public async Task<bool> Create(Location location)
-    {
-        await Insert(location);
-        return await SaveChanges();
-    }
-
-    public async new Task<bool> SaveChanges()
-    {
-        var result = await this.context.SaveChangesAsync();
-
-        if (result > 0)
-        {
-            return true;
-        }
-
-        return false;
     }
 }

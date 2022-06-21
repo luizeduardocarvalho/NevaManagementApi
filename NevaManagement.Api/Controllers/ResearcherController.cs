@@ -1,22 +1,20 @@
-﻿using NevaManagement.Domain.Dtos.Researcher;
-
-namespace NevaManagement.Api.Controllers;
+﻿namespace NevaManagement.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class ResearcherController : ControllerBase
 {
-    private readonly IResearcherRepository repository;
+    private readonly IResearcherService service;
 
-    public ResearcherController(IResearcherRepository repository)
+    public ResearcherController(IResearcherService service)
     {
-        this.repository = repository;
+        this.service = service;
     }
 
     [HttpGet("GetResearchers")]
     public async Task<IActionResult> GetResearchers()
     {
-        var researchers = await this.repository.GetResearchers();
+        var researchers = await this.service.GetResearchers();
 
         return Ok(researchers);
     }
@@ -29,19 +27,10 @@ public class ResearcherController : ControllerBase
             return BadRequest();
         }
 
-        var researcher = new Researcher()
-        {
-            Email = researcherDto.Email,
-            Name = researcherDto.Name
-        };
+        var result = await this.service.Create(researcherDto);
 
-        var result = await this.repository.Create(researcher);
-
-        if(result)
-        {
-            return Ok(result);
-        }
-
-        return StatusCode(500, "Error");
+        return result ?
+            Ok("Successfully create a new researcher.") :
+            StatusCode(500, "Could not save the new researcher.");
     }
 }

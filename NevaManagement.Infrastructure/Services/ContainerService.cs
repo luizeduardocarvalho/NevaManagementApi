@@ -24,7 +24,6 @@ public class ContainerService : IContainerService
 
     public async Task<bool> AddContainer(AddContainerDto addContainerDto)
     {
-        var result = false;
         var container = new Container
         {
             Description = addContainerDto.Description,
@@ -46,13 +45,14 @@ public class ContainerService : IContainerService
                 }
             }
 
-            var researcher = await this.researcherRepository.GetEntityById(addContainerDto.ResearcherId.Value);
+            var researcher = await this.researcherRepository.GetById(addContainerDto.ResearcherId.Value);
             if (researcher is not null)
             {
                 container.Researcher = researcher;
             }
 
-            var organism = await this.organismRepository.GetEntityById(addContainerDto.OrganismId.Value);
+            var organism = await this.organismRepository.GetById(addContainerDto.OrganismId.Value);
+
             if (organism is not null)
             {
                 container.Origin = organism;
@@ -85,14 +85,12 @@ public class ContainerService : IContainerService
                 await this.articleContainerRepository.Insert(articleContainer);
             }
 
-            result = await this.articleContainerRepository.SaveChanges();
+            return await this.articleContainerRepository.SaveChanges();
         }
         catch
         {
             throw new Exception($"An error occurred while creating {addContainerDto.Name}.");
         }
-
-        return result;
     }
 
     public async Task<IList<GetSimpleContainerDto>> GetContainers()

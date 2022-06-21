@@ -1,10 +1,7 @@
 ﻿namespace NevaManagement.Domain.Interfaces.Repositories;
 
-public interface IOrganismRepository
+public interface IOrganismRepository : IBaseRepository<Organism>
 {
-    Task<GetDetailedOrganismDto> GetById(long id);
-    Task<Organism> GetEntityById(long id);
+    Task<GetDetailedOrganismDto> GetDetailedOrganismById(long id);
     Task<IList<GetOrganismDto>> GetOrganisms();
-    Task<bool> Create(Organism organism);
-    Task<bool> SaveChanges();
 }

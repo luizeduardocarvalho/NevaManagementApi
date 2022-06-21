@@ -14,7 +14,7 @@ public class ProductUsageController : ControllerBase
     [HttpGet("GetLastUsesByResearcher")]
     public async Task<IActionResult> GetLastUsesByResearcher([FromQuery] long researcherId)
     {
-        if(researcherId == 0)
+        if (researcherId == 0)
         {
             return BadRequest();
         }
@@ -32,16 +32,9 @@ public class ProductUsageController : ControllerBase
             return BadRequest();
         }
 
-        try
-        {
-            var result = await this.service.GetLastUsedProductByResearcher(researcherId);
-            
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        var result = await this.service.GetLastUsedProductByResearcher(researcherId);
+
+        return Ok(result);
     }
 
     [HttpGet("GetLastUsesByProduct")]
