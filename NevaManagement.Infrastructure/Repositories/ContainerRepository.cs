@@ -62,4 +62,18 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
             .ThenInclude(x => x.Article)
             .Where(x => x.Id == id).SingleOrDefaultAsync();
     }
+
+    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate()
+    {
+        return await this.context.Containers
+            .Select(x => new GetContainersByTransferDateDto()
+            {
+                Id = x.Id,
+                TransferDate = x.TransferDate,
+                Name = x.Name
+            })
+            .Where(x => x.TransferDate >= DateTimeOffset.UtcNow)
+            .OrderBy(x => x.TransferDate)
+            .ToListAsync();
+    }
 }

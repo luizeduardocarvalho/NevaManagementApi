@@ -28,4 +28,7 @@ public class Container : BaseEntity
 
     [ForeignKey("Sub_Container_Id")]
     public Container SubContainer { get; set; }
+
+    [Column("TransferDate")]
+    public DateTimeOffset TransferDate { get; set; }
 }

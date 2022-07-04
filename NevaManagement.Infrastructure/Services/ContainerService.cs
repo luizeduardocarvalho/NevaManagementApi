@@ -128,4 +128,16 @@ public class ContainerService : IContainerService
             throw new Exception("An error occurred while getting the container.");
         }
     }
+
+    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate()
+    {
+        try
+        {
+            return await this.repository.GetContainersOrderedByTransferDate();
+        }
+        catch
+        {
+            throw new Exception("An error occurred while getting the containers.");
+        }
+    }
 }
