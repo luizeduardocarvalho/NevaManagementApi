@@ -21,7 +21,7 @@ public class ResearcherService : IResearcherService
         }
     }
 
-    public async Task<Researcher> GetByEmailAndPassword(string email, string password)
+    public async Task<GetDetailedResearcherDto> GetByEmailAndPassword(string email, string password)
     {
         try
         {

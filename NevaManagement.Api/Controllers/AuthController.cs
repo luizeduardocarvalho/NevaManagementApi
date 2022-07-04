@@ -24,44 +24,37 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<dynamic>> AuthenticateAsync([FromBody] LoginDto loginDto)
+    public async Task<IActionResult> AuthenticateAsync([FromBody] LoginDto loginDto)
     {
-        var encryptedPassword = this.encryptService.Encrypt(loginDto.Password);
+        var encryptedPassword = await this.encryptService.Encrypt(loginDto.Password);
         var user = await this.researcherService.GetByEmailAndPassword(loginDto.Email, encryptedPassword);
 
         if (user == null)
             return NotFound("Email or password are invalid.");
 
-        var token = this.tokenService.GenerateToken(user);
+        var token = await this.tokenService.GenerateToken(user);
 
         user.Password = "";
 
-        return Ok(new
-        {
-            user.Id,
-            user.Name,
-            user.Email,
-            token,
-            user
-        });
+        var loggedUser = new LoggedUserDto { Researcher = user, Token = token };
+
+        return Ok(loggedUser);
     }
 
     [AllowAnonymous]
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         if (string.IsNullOrEmpty(registerDto.Password))
         {
             registerDto.Password = "123456";
         }
 
-        registerDto.Password = this.encryptService.Encrypt(registerDto.Password);
-        await this.authService.Register(registerDto);
-        return Ok("Registered.");
+        registerDto.Password = await this.encryptService.Encrypt(registerDto.Password);
+        var result = await this.authService.Register(registerDto);
+
+        return result ?
+            Ok("The user was registered successfully.") :
+            StatusCode(500, "An error occurred while registering the user.");
     }
 }

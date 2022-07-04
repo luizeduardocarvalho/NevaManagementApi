@@ -1,7 +1,4 @@
-﻿using NevaManagement.Domain.Dtos.EquipmentUsage;
-using NevaManagement.Domain.Dtos.Product;
-
-namespace NevaManagement.Api.Controllers;
+﻿namespace NevaManagement.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -36,6 +33,8 @@ public class EquipmentUsageController : ControllerBase
     {
         var result = await this.service.UseEquipment(useEquipmentDto);
 
-        return Ok(result);
+        return result ?
+            Ok("Equipment was used successfully.") :
+            StatusCode(500, "An error occurred while using the equipment.");
     }
 }

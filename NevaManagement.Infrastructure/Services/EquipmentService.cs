@@ -44,7 +44,7 @@ public class EquipmentService : IEquipmentService
     {
         try
         {
-            var equipment = await this.repository.GetById(equipmentDto.Id);
+            var equipment = await this.repository.GetById(equipmentDto.Id.Value);
 
             if (equipment is not null)
             {

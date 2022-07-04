@@ -2,6 +2,7 @@
 
 [ApiController]
 [Route("[controller]")]
+[Produces("application/json")]
 public class ProductUsageController : ControllerBase
 {
     private readonly IProductUsageService service;
@@ -14,11 +15,6 @@ public class ProductUsageController : ControllerBase
     [HttpGet("GetLastUsesByResearcher")]
     public async Task<IActionResult> GetLastUsesByResearcher([FromQuery] long researcherId)
     {
-        if (researcherId == 0)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.GetLastUsesByResearcher(researcherId);
 
         return Ok(result);
@@ -27,11 +23,6 @@ public class ProductUsageController : ControllerBase
     [HttpGet("GetLastUsedProductByResearcher")]
     public async Task<IActionResult> GetLastUsedProductByResearcher([FromQuery] long researcherId)
     {
-        if (researcherId == 0)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.GetLastUsedProductByResearcher(researcherId);
 
         return Ok(result);
@@ -40,11 +31,6 @@ public class ProductUsageController : ControllerBase
     [HttpGet("GetLastUsesByProduct")]
     public async Task<IActionResult> GetLastUsesByProduct([FromQuery] long productId)
     {
-        if (productId == 0)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.GetLastUsesByProduct(productId);
 
         return Ok(result);

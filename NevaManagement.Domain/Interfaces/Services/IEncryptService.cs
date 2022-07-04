@@ -2,5 +2,5 @@
 
 public interface IEncryptService
 {
-    string Encrypt(string password);
+    Task<string> Encrypt(string password);
 }

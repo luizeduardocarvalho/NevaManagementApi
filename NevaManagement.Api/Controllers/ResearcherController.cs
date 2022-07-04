@@ -22,11 +22,6 @@ public class ResearcherController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateResearcherDto researcherDto)
     {
-        if(!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.Create(researcherDto);
 
         return result ?

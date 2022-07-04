@@ -9,7 +9,7 @@ public class TokenService : ITokenService
         this.settings = settings;
     }
 
-    public string GenerateToken(User user)
+    public async Task<string> GenerateToken(GetDetailedResearcherDto user)
     {
         var secret = this.settings.Value.Secret;
         if (string.IsNullOrEmpty(secret))
@@ -32,6 +32,6 @@ public class TokenService : ITokenService
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
-        return tokenHandler.WriteToken(token);
+        return await Task.FromResult(tokenHandler.WriteToken(token));
     }
 }

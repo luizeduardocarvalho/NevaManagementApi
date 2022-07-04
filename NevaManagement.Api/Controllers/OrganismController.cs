@@ -1,6 +1,4 @@
-﻿using NevaManagement.Domain.Dtos.Organism;
-
-namespace NevaManagement.Api.Controllers;
+﻿namespace NevaManagement.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -23,13 +21,8 @@ public class OrganismController : ControllerBase
     }
 
     [HttpPost("AddOrganism")]
-    public async Task<IActionResult> AddLocation([FromBody] AddOrganismDto addOrganismDto)
+    public async Task<IActionResult> AddOrganism([FromBody] AddOrganismDto addOrganismDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.AddOrganism(addOrganismDto);
 
         return result ?
@@ -38,13 +31,8 @@ public class OrganismController : ControllerBase
     }
 
     [HttpPatch("EditOrganism")]
-    public async Task<IActionResult> EditProduct([FromBody] EditOrganismDto editOrganismDto)
+    public async Task<IActionResult> EditOrganism([FromBody] EditOrganismDto editOrganismDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.EditOrganism(editOrganismDto);
 
         return result ?
@@ -53,13 +41,8 @@ public class OrganismController : ControllerBase
     }
 
     [HttpGet("GetOrganismById")]
-    public async Task<IActionResult> GetLocationById([FromQuery] long organismId)
+    public async Task<IActionResult> GetOrganismById([FromQuery] long organismId)
     {
-        if (organismId <= 0)
-        {
-            return BadRequest();
-        }
-
         var location = await this.service.GetOrganismById(organismId);
 
         return Ok(location);

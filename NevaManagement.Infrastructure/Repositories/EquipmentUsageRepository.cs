@@ -16,7 +16,7 @@ public class EquipmentUsageRepository : BaseRepository<EquipmentUsage>, IEquipme
     {
         return await this.context.EquipmentUsages
             .Where(equipmentUsage => equipmentUsage.EquipmentId == equipmentId)
-            .Where(equipmentUsage => equipmentUsage.StartDate >= DateTimeOffset.UtcNow)
+            .Where(equipmentUsage => equipmentUsage.EndDate >= DateTimeOffset.UtcNow)
             .Select(equipmentUsage => new GetEquipmentUsageDto()
             {
                 Id = equipmentUsage.Id,

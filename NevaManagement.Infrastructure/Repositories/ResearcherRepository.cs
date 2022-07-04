@@ -26,10 +26,16 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
                 .ToListAsync();
     }
 
-    public async Task<Researcher> GetByEmailAndPassword(string email, string password)
+    public async Task<GetDetailedResearcherDto> GetByEmailAndPassword(string email, string password)
     {
         return await this.context.Researchers
             .Where(researcher => researcher.Email.Equals(email) && researcher.Password.Equals(password))
+            .Select(r => new GetDetailedResearcherDto()
+            {
+                Email = r.Name,
+                Id = r.Id,
+                Name = r.Name
+            })
             .FirstOrDefaultAsync();
     }
 }

@@ -25,11 +25,6 @@ public class LocationController : ControllerBase
     [HttpPost("AddLocation")]
     public async Task<IActionResult> AddLocation([FromBody] AddLocationDto addLocationDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.AddLocation(addLocationDto);
 
         return result ?
@@ -38,13 +33,8 @@ public class LocationController : ControllerBase
     }
 
     [HttpPatch("EditLocation")]
-    public async Task<IActionResult> EditProduct([FromBody] EditLocationDto editLocationDto)
+    public async Task<IActionResult> EditLocation([FromBody] EditLocationDto editLocationDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.EditLocation(editLocationDto);
 
         return result ?
@@ -55,11 +45,6 @@ public class LocationController : ControllerBase
     [HttpGet("GetLocationById")]
     public async Task<IActionResult> GetLocationById([FromQuery] long locationId)
     {
-        if (locationId <= 0)
-        {
-            return BadRequest();
-        }
-
         var location = await this.service.GetLocationById(locationId);
 
         return Ok(location);

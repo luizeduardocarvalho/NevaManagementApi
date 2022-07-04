@@ -9,7 +9,7 @@ public class EncryptService : IEncryptService
         this.settings = settings;
     }
 
-    public string Encrypt(string password)
+    public async Task<string> Encrypt(string password)
     {
         var key = this.settings.Value.Secret;
         if (string.IsNullOrEmpty(key))
@@ -25,7 +25,7 @@ public class EncryptService : IEncryptService
 
         var hashedPassword = hash.ComputeHash(passwordBytes);
 
-        return Convert.ToBase64String(hashedPassword);
+        return await Task.FromResult(Convert.ToBase64String(hashedPassword));
     }
 }
 

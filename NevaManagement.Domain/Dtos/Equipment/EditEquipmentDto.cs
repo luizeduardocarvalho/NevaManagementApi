@@ -3,7 +3,7 @@
 public class EditEquipmentDto
 {
     [Required]
-    public long Id { get; set; }
+    public long? Id { get; set; }
 
     public string Description { get; set; }
 

@@ -39,11 +39,6 @@ public class ProductController : ControllerBase
     [HttpPost("Create")]
     public async Task<IActionResult> Create([FromBody] CreateProductDto productDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.Create(productDto);
 
         return result ? 
@@ -54,11 +49,6 @@ public class ProductController : ControllerBase
     [HttpPatch("AddQuantity")]
     public async Task<IActionResult> AddProductQuantity([FromBody] AddQuantityToProductDto addQuantityToProductDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.AddQuantityToProduct(addQuantityToProductDto);
 
         return result ?
@@ -69,11 +59,6 @@ public class ProductController : ControllerBase
     [HttpPatch("UseProduct")]
     public async Task<IActionResult> UseProduct([FromBody] UseProductDto useProductDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.UseProduct(useProductDto);
 
         return result ?
@@ -84,11 +69,6 @@ public class ProductController : ControllerBase
     [HttpPatch("EditProduct")]
     public async Task<IActionResult> EditProduct([FromBody] EditProductDto editProductDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.EditProduct(editProductDto);
 
         return result ?

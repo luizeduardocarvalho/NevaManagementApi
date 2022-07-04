@@ -1,4 +1,6 @@
-﻿namespace NevaManagement.Api.Controllers;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+namespace NevaManagement.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -25,11 +27,13 @@ public class EquipmentController : ControllerBase
     {
         var result = await this.service.AddEquipment(equipmentDto);
 
-        return Ok(result);
+        return result ?
+            Ok($"{equipmentDto.Name} was created successfully.") :
+            StatusCode(500, $"An error occurred while creating {equipmentDto.Name}.");
     }
 
     [HttpGet("GetDetailedEquipment")]
-    public async Task<IActionResult> GetDetailedEquipment([FromQuery] long id)
+    public async Task<IActionResult> GetDetailedEquipment([BindRequired, FromQuery] long id)
     {
         var result = await this.service.GetDetailedEquipment(id);
 

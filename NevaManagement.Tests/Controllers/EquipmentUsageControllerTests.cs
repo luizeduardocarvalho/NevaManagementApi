@@ -67,13 +67,36 @@ public class EquipmentUsageControllerTests
 
         equipmentUsageServiceMock
             .Setup(service => service.UseEquipment(useEquipment))
-            .ReturnsAsync(It.IsAny<bool>());
+            .ReturnsAsync(true);
 
         // Act
         var result = await controller.UseEquipment(useEquipment);
 
         // Arrange
         result.Should().BeOfType<OkObjectResult>();
+        equipmentUsageServiceMock
+            .Verify(service => service.UseEquipment(useEquipment), Times.Once);
+    }
+
+    [Fact]
+    public async Task UseEquipmentWithErrorOnSaveShouldReturnInternalServerError()
+    {
+        // Arrange
+        var useEquipment = new UseEquipmentDto()
+        {
+            ResearcherId = 1,
+            EquipmentId = 1
+        };
+
+        equipmentUsageServiceMock
+            .Setup(service => service.UseEquipment(useEquipment))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await controller.UseEquipment(useEquipment);
+
+        // Arrange
+        result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(500);
         equipmentUsageServiceMock
             .Verify(service => service.UseEquipment(useEquipment), Times.Once);
     }

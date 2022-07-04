@@ -61,24 +61,6 @@ public sealed class ContainerControllerTests
 
     }
 
-    [Fact]
-    public async Task AddContainers_WithErrorInModelState_ShouldReturn400BadRequest()
-    {
-        // Arrange
-        var newContainer = new AddContainerDto()
-        {
-            Name = "ContainerName",
-            OrganismId = 1
-        };
-
-        containerController.ModelState.AddModelError("Error", "Error");
-
-        // Act
-        var result = await containerController.AddContainer(newContainer);
-
-        // Assert
-        result.Should().BeOfType<BadRequestResult>();
-    }
 
     [Theory]
     [InlineData(1)]
@@ -107,21 +89,6 @@ public sealed class ContainerControllerTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(-10)]
-    public async Task GetChildrenContainers_WithInValidId_ShouldReturn400BadRequest(long id)
-    {
-        // Arrange
-        containerController.ModelState.AddModelError("Error", "Error");
-
-        // Act
-        var result = await containerController.GetChildrenContainers(id);
-
-        // Assert
-        result.Should().BeOfType<BadRequestResult>();
-    }
-
-    [Theory]
     [InlineData(1)]
     [InlineData(100)]
     [InlineData(10000)]
@@ -141,20 +108,5 @@ public sealed class ContainerControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         containerService.Verify(service => service.GetDetailedContainer(id), Moq.Times.Once);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-10)]
-    public async Task GetDetailedContainer_WithInValidId_ShouldReturn400BadRequest(long id)
-    {
-        // Arrange
-        containerController.ModelState.AddModelError("Error", "Error");
-
-        // Act
-        var result = await containerController.GetDetailedContainer(id);
-
-        // Assert
-        result.Should().BeOfType<BadRequestResult>();
     }
 }

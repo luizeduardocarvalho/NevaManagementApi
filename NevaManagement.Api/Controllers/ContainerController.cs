@@ -28,11 +28,6 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddContainer([FromBody] AddContainerDto addContainerDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest();
-        }
-
         await this.service.AddContainer(addContainerDto);
 
         return StatusCode(201, $"Successfully created {addContainerDto.Name}.");
@@ -44,11 +39,6 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetChildrenContainers([FromQuery] long containerId)
     {
-        if (containerId <= 0)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.GetChildrenContainers(containerId);
 
         return Ok(result);
@@ -60,11 +50,6 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId)
     {
-        if (containerId <= 0)
-        {
-            return BadRequest();
-        }
-
         var result = await this.service.GetDetailedContainer(containerId);
 
         return Ok(result);
