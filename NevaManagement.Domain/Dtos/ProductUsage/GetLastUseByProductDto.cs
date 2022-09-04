@@ -6,4 +6,5 @@ public class GetLastUseByProductDto
     public DateTimeOffset UseDate { get; set; }
     public double Quantity { get; set; }
     public string Unit { get; set; }
+    public GetDetailedProductDto Product { get; set; }
 }

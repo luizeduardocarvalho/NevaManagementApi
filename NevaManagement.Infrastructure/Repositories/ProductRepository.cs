@@ -53,4 +53,9 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
             })
             .FirstOrDefaultAsync();
     }
+
+    public Task<IList<GetDetailedProductDto>> GetLowInStockProducts()
+    {
+        throw new NotImplementedException();
+    }
 }

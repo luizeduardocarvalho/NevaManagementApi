@@ -166,4 +166,36 @@ public class ProductService : IProductService
             throw new Exception("An error occurred while editing the product.");
         }
     }
+
+    public async Task<IList<GetDetailedProductDto>> GetLowInStockProducts()
+    {
+        var lastUses = await this.productUsageRepository.GetLastThreeMonthsUsesForAllProducts();
+
+        var totalUsedPerProduct = lastUses
+            .GroupBy(x => x.Product.Id)
+            .Select(x => new
+            {
+                TotalQuantityUsed = x.Sum(p => p.Quantity),
+                ProductId = x.Key,
+                ProductName = x.First().Product.Name,
+                QuantityInStock = x.First().Product.Quantity
+            })
+            .Where(x => x.TotalQuantityUsed >= x.QuantityInStock);
+
+        var lowInStockProducts = new List<GetDetailedProductDto>();
+
+        foreach (var product in totalUsedPerProduct)
+        {
+            var lowInStockProduct = new GetDetailedProductDto
+            {
+                Id = product.ProductId,
+                Name = product.ProductName,
+                Quantity = product.QuantityInStock,
+            };
+
+            lowInStockProducts.Add(lowInStockProduct);
+        }
+
+        return lowInStockProducts;
+    }
 }

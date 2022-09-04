@@ -75,4 +75,12 @@ public class ProductController : ControllerBase
             StatusCode(200, $"Successfully edited {editProductDto.Name}.") :
             StatusCode(500, "Error occurred while editing the product.");
     }
+
+    [HttpGet("GetLowInStockProducts")]
+    public async Task<IActionResult> GetLowInStockProducts()
+    {
+        var result = await this.service.GetLowInStockProducts();
+
+        return Ok(result);
+    }
 }

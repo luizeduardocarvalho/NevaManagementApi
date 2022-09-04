@@ -9,4 +9,5 @@ public interface IProductService
     Task<bool> AddQuantityToProduct(AddQuantityToProductDto addQuantityToProductDto);
     Task<bool> UseProduct(UseProductDto useProductDto);
     Task<bool> EditProduct(EditProductDto editProductDto);
+    Task<IList<GetDetailedProductDto>> GetLowInStockProducts();
 }

@@ -54,4 +54,15 @@ public class ContainerController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("GetContainersOrderedByTransferDate")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetContainersByTransferDateDto>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetContainersOrderedByTransferDate()
+    {
+        var result = await this.service.GetContainersOrderedByTransferDate();
+
+        return Ok(result);
+    }
 }

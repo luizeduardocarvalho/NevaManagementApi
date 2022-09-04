@@ -1,14 +1,16 @@
-﻿using System.Data;
-
-namespace NevaManagement.Infrastructure.Services;
+﻿namespace NevaManagement.Infrastructure.Services;
 
 public class OrganismService : IOrganismService
 {
     private readonly IOrganismRepository repository;
+    private readonly IBuilder<AddOrganismDto, Organism> builder;
 
-    public OrganismService(IOrganismRepository repository)
+    public OrganismService(
+        IOrganismRepository repository,
+        IBuilder<AddOrganismDto, Organism> builder)
     {
         this.repository = repository;
+        this.builder = builder;
     }
 
     public async Task<IList<GetOrganismDto>> GetOrganisms()
@@ -18,16 +20,7 @@ public class OrganismService : IOrganismService
 
     public async Task<bool> AddOrganism(AddOrganismDto addOrganismDto)
     {
-        var organism = new Organism
-        {
-            Description = addOrganismDto.Description,
-            Name = addOrganismDto.Name,
-            CollectionDate = addOrganismDto.CollectionDate,
-            CollectionLocation = addOrganismDto.CollectionLocation,
-            IsolationDate = addOrganismDto.IsolationDate,
-            OriginPart = addOrganismDto.OriginPart,
-            Type = addOrganismDto.Type
-        };
+        var organism = this.builder.Build(addOrganismDto);
 
         if (addOrganismDto.OriginOrganismId is not null)
         {

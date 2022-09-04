@@ -1,4 +1,6 @@
-﻿namespace NevaManagement.Infrastructure.Repositories;
+﻿using System.Data.Entity.Infrastructure;
+
+namespace NevaManagement.Infrastructure.Repositories;
 
 public class ProductUsageRepository : BaseRepository<ProductUsage>, IProductUsageRepository
 {
@@ -52,5 +54,24 @@ public class ProductUsageRepository : BaseRepository<ProductUsage>, IProductUsag
                 Unit = x.Product.Unit
             })
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<IList<GetLastUseByProductDto>> GetLastThreeMonthsUsesForAllProducts()
+    {
+        var todayDate = DateTime.Today;
+        return await this.context.ProductUsages
+            .Where(x => x.UsageDate.Year == todayDate.Year && 
+                todayDate.Month - x.UsageDate.Month <= 3)
+            .Select(x => new GetLastUseByProductDto
+            {
+                Product = new GetDetailedProductDto
+                {
+                    Id = x.Product.Id,
+                    Name = x.Product.Name,
+                    Quantity = x.Product.Quantity
+                },
+                Quantity = x.Quantity
+            })
+            .ToListAsync();
     }
 }

@@ -80,6 +80,7 @@ public class Startup
                 };
             });
 
+        services.ConfigureBuilders();
         services.ConfigureRepositories();
         services.ConfigureServices();
 
