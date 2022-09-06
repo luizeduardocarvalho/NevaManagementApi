@@ -34,7 +34,8 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
             {
                 Email = r.Name,
                 Id = r.Id,
-                Name = r.Name
+                Name = r.Name,
+                Role = r.Role
             })
             .FirstOrDefaultAsync();
     }
