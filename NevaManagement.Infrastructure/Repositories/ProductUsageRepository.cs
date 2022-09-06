@@ -68,7 +68,8 @@ public class ProductUsageRepository : BaseRepository<ProductUsage>, IProductUsag
                 {
                     Id = x.Product.Id,
                     Name = x.Product.Name,
-                    Quantity = x.Product.Quantity
+                    Quantity = x.Product.Quantity,
+                    Unit = x.Product.Unit,
                 },
                 Quantity = x.Quantity
             })

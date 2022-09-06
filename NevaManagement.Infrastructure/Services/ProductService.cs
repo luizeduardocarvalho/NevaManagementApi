@@ -178,7 +178,8 @@ public class ProductService : IProductService
                 TotalQuantityUsed = x.Sum(p => p.Quantity),
                 ProductId = x.Key,
                 ProductName = x.First().Product.Name,
-                QuantityInStock = x.First().Product.Quantity
+                QuantityInStock = x.First().Product.Quantity,
+                Unit = x.First().Product.Unit,
             })
             .Where(x => x.TotalQuantityUsed >= x.QuantityInStock);
 
@@ -191,6 +192,8 @@ public class ProductService : IProductService
                 Id = product.ProductId,
                 Name = product.ProductName,
                 Quantity = product.QuantityInStock,
+                Unit = product.Unit,
+                QuantityUsedInTheLastThreeMonths = product.TotalQuantityUsed
             };
 
             lowInStockProducts.Add(lowInStockProduct);
