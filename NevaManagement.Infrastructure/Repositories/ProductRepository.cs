@@ -1,4 +1,6 @@
-﻿namespace NevaManagement.Infrastructure.Repositories;
+﻿using System.Threading;
+
+namespace NevaManagement.Infrastructure.Repositories;
 
 public class ProductRepository : BaseRepository<Product>, IProductRepository
 {
@@ -10,9 +12,11 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
         this.context = context;
     }
 
-    public async Task<IEnumerable<GetProductDto>> GetAll()
+    public async Task<IEnumerable<GetProductDto>> GetAll(int page)
     {
         return await this.context.Products
+            .Skip((page - 1) * 15)
+            .Take(15)
             .Select(p => new GetProductDto
             {
                 Id = p.Id,

@@ -19,11 +19,11 @@ public class ProductService : IProductService
         this.productUsageRepository = productUsageRepository;
     }
 
-    public async Task<IEnumerable<GetProductDto>> GetAll()
+    public async Task<IEnumerable<GetProductDto>> GetAll(int page)
     {
         try
         {
-            return await this.repository.GetAll();
+            return await this.repository.GetAll(page);
         }
         catch (Exception ex)
         {

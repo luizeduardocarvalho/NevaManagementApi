@@ -2,7 +2,7 @@
 
 public interface IProductService
 {
-    Task<IEnumerable<GetProductDto>> GetAll();
+    Task<IEnumerable<GetProductDto>> GetAll(int page);
     Task<GetProductDto> GetById(long id);
     Task<GetDetailedProductDto> GetDetailedProductById(long id);
     Task<bool> Create(CreateProductDto productDto);

@@ -13,9 +13,9 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("GetAll")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int page)
     {
-        var products = await this.service.GetAll();
+        var products = await this.service.GetAll(page);
 
         return Ok(products);
     }
