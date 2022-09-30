@@ -1,15 +1,24 @@
-﻿namespace NevaManagement.Infrastructure.Services;
+﻿using Microsoft.Extensions.Caching.Memory;
+
+namespace NevaManagement.Infrastructure.Services;
 
 public class LocationService : ILocationService
 {
     private readonly ILocationRepository repository;
+    private readonly IMemoryCache cache;
 
-    public LocationService(ILocationRepository repository)
+    public LocationService(ILocationRepository repository, IMemoryCache cache)
     {
         this.repository = repository;
+        this.cache = cache;
     }
 
-    public async Task<IList<GetLocationDto>> GetLocations()
+    public async Task<IList<GetLocationDto>> GetCachedLocations()
+    {
+        return await this.cache.GetOrCreateAsync("locations", async entry => await GetLocations());
+    }
+
+    private async Task<IList<GetLocationDto>> GetLocations()
     {
         return await this.repository.GetLocations();
     }
@@ -33,6 +42,7 @@ public class LocationService : ILocationService
         {
             await this.repository.Insert(location);
             result = await this.repository.SaveChanges();
+            this.cache.Remove("locations");
         }
         catch
         {

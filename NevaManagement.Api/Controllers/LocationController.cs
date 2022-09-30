@@ -17,7 +17,7 @@ public class LocationController : ControllerBase
     [HttpGet("GetLocations")]
     public async Task<IActionResult> GetLocations()
     {
-        var locations = await this.service.GetLocations();
+        var locations = await this.service.GetCachedLocations();
 
         return Ok(locations);
     }

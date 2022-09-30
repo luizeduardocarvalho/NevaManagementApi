@@ -13,6 +13,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddMemoryCache();
         services.AddCors();
         services.AddControllers();
         services.AddSwaggerGen(c =>
@@ -103,6 +104,8 @@ public class Startup
         app.UseCors(
             options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
         );
+
+        app.InitializeCache();
 
         app.UseMiddleware<ErrorHandlerMiddleware>();
 
