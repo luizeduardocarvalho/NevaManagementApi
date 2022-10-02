@@ -8,9 +8,9 @@ public class OrganismBuilder : IBuilder<AddOrganismDto, Organism>
         {
             Description = input.Description,
             Name = input.Name,
-            CollectionDate = input.CollectionDate,
+            CollectionDate = input.CollectionDate.UtcDateTime,
             CollectionLocation = input.CollectionLocation,
-            IsolationDate = input.IsolationDate,
+            IsolationDate = input.IsolationDate.UtcDateTime,
             OriginPart = input.OriginPart,
             Type = input.Type
         };

@@ -1,4 +1,5 @@
-﻿using NevaManagement.Api.Extensions;
+﻿using Microsoft.AspNetCore.Cors.Infrastructure;
+using NevaManagement.Api.Extensions;
 
 namespace NevaManagement.Api;
 
@@ -14,7 +15,12 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddMemoryCache();
-        services.AddCors();
+        services.AddCors(opt => opt.AddPolicy("CorsPolicy", c =>
+        {
+            c.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+        }));
         services.AddControllers();
         services.AddSwaggerGen(c =>
         {
@@ -101,9 +107,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseCors(
-            options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
-        );
+        app.UseCors("CorsPolicy");
 
         app.InitializeCache();
 
