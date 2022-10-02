@@ -15,6 +15,7 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
     public async Task<IEnumerable<GetProductDto>> GetAll(int page)
     {
         return await this.context.Products
+            .OrderBy(x => x.Name)
             .Skip((page - 1) * 15)
             .Take(15)
             .Select(p => new GetProductDto
