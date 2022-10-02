@@ -3,7 +3,9 @@
 public class AddContainerDto
 {
     public string[] DoiList { get; set; }
+
     public string CultureMedia { get; set; }
+
     [Required]
     public string Name { get; set; }
 
@@ -17,6 +19,9 @@ public class AddContainerDto
     [Required]
     public long? OrganismId { get; set; }
 
+    [Required]
+    public DateTimeOffset CreationDate { get; set; }
 
-    public DateTimeOffset Date { get; set; }
+    [Required]
+    public DateTimeOffset TransferDate { get; set; }
 }

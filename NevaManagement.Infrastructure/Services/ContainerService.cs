@@ -28,7 +28,8 @@ public class ContainerService : IContainerService
         {
             Description = addContainerDto.Description,
             Name = addContainerDto.Name,
-            CreationDate = addContainerDto.Date,
+            CreationDate = addContainerDto.CreationDate.UtcDateTime,
+            TransferDate = addContainerDto.TransferDate.UtcDateTime,
             CultureMedia = addContainerDto.CultureMedia,
         };
 
