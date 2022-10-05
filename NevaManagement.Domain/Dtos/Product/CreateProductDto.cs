@@ -1,4 +1,7 @@
-﻿namespace NevaManagement.Domain.Dtos.Product;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
+
+namespace NevaManagement.Domain.Dtos.Product;
 
 public class CreateProductDto
 {
@@ -15,5 +18,21 @@ public class CreateProductDto
     [Required]
     public string Unit { get; set; }
 
-    public DateTimeOffset ExpirationDate { get; set; }
+    public string ExpirationDate { get; set; }
+
+    [JsonIgnore]
+    public DateTimeOffset? ParsedExpirationDate
+    {
+        get 
+        {
+            if(!string.IsNullOrEmpty(ExpirationDate))
+            {
+                return DateTimeOffset.Parse(ExpirationDate, new CultureInfo("en-US")); 
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
 }

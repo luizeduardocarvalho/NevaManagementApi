@@ -66,8 +66,12 @@ public class ProductService : IProductService
                 Name = productDto.Name,
                 Quantity = productDto.Quantity,
                 Unit = productDto.Unit,
-                ExpirationDate = productDto.ExpirationDate.UtcDateTime
             };
+
+            if (productDto.ParsedExpirationDate != null)
+            {
+                product.ExpirationDate = productDto.ParsedExpirationDate.Value.UtcDateTime;
+            }
 
             await this.repository.Insert(product);
             return await this.repository.SaveChanges();
