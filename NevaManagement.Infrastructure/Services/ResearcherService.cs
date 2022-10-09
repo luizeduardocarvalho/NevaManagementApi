@@ -9,11 +9,11 @@ public class ResearcherService : IResearcherService
         this.repository = repository;
     }
 
-    public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
+    async Task<IList<GetSimpleResearcherDto>> IResearcherService.GetResearchers()
     {
         try
         {
-            return await this.repository.GetResearchers();
+            return await this.repository.GetResearchers().ConfigureAwait(false);
         }
         catch
         {
@@ -21,11 +21,11 @@ public class ResearcherService : IResearcherService
         }
     }
 
-    public async Task<GetDetailedResearcherDto> GetByEmailAndPassword(string email, string password)
+    async Task<GetDetailedResearcherDto> IResearcherService.GetByEmailAndPassword(string email, string password)
     {
         try
         {
-            return await repository.GetByEmailAndPassword(email, password);
+            return await repository.GetByEmailAndPassword(email, password).ConfigureAwait(false);
         }
         catch
         {
@@ -33,7 +33,7 @@ public class ResearcherService : IResearcherService
         }
     }
 
-    public async Task<bool> Create(CreateResearcherDto researcher)
+    async Task<bool> IResearcherService.Create(CreateResearcherDto researcher)
     {
         var newResearcher = new Researcher()
         {
@@ -43,8 +43,8 @@ public class ResearcherService : IResearcherService
 
         try
         {
-            await this.repository.Insert(newResearcher);
-            return await this.repository.SaveChanges();
+            await this.repository.Insert(newResearcher).ConfigureAwait(false);
+            return await this.repository.SaveChanges().ConfigureAwait(false);
         }
         catch
         {
