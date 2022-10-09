@@ -63,12 +63,14 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
             .Where(x => x.Id == id).SingleOrDefaultAsync();
     }
 
-    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate()
+    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page)
     {
         return await this.context.Containers
+            .OrderBy(x => x.Name)
+            .Skip((page - 1) * 15)
+            .Take(15)
             .Where(x => x.SubContainer == null)
             .OrderBy(x => x.TransferDate)
-            .Take(2)
             .Select(x => new GetContainersByTransferDateDto()
             {
                 Id = x.Id,

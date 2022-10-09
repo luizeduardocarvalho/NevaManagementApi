@@ -130,11 +130,11 @@ public class ContainerService : IContainerService
         }
     }
 
-    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate()
+    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page = 0)
     {
         try
         {
-            return await this.repository.GetContainersOrderedByTransferDate();
+            return await this.repository.GetContainersOrderedByTransferDate(page);
         }
         catch
         {

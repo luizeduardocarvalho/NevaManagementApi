@@ -6,5 +6,5 @@ public interface IContainerService
     Task<bool> AddContainer(AddContainerDto addContainerDto);
     Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id);
     Task<GetDetailedContainerDto> GetDetailedContainer(long id);
-    Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate();
+    Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page);
 }
