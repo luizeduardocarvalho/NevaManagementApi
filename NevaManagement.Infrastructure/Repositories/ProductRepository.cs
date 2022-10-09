@@ -53,9 +53,11 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
                 Name = x.Name,
                 Quantity = x.Quantity,
                 Unit = x.Unit,
+                Formula = x.Formula,
                 Description = x.Description,
                 ExpirationDate = x.ExpirationDate
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync()
+            .ConfigureAwait(false);
     }
 }
