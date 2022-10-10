@@ -41,20 +41,11 @@ public class AuthController : ControllerBase
         return Ok(loggedUser);
     }
 
-    [AllowAnonymous]
-    [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+    [HttpPost("ChangePassword")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {
-        if (string.IsNullOrEmpty(registerDto.Password))
-        {
-            registerDto.Password = "123456";
-        }
+        await this.authService.ChangePassword(changePasswordDto);
 
-        registerDto.Password = await this.encryptService.Encrypt(registerDto.Password);
-        var result = await this.authService.Register(registerDto);
-
-        return result ?
-            Ok("The user was registered successfully.") :
-            StatusCode(500, "An error occurred while registering the user.");
+        return NoContent();
     }
 }

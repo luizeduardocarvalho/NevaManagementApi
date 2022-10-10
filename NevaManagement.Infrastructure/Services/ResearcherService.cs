@@ -25,7 +25,9 @@ public class ResearcherService : IResearcherService
     {
         try
         {
-            return await repository.GetByEmailAndPassword(email, password).ConfigureAwait(false);
+            return await repository
+                .GetByEmailAndPassword(email, password)
+                .ConfigureAwait(false);
         }
         catch
         {
@@ -50,5 +52,15 @@ public class ResearcherService : IResearcherService
         {
             throw new Exception("An error occurred while creating the researcher.");
         }
+    }
+
+    async Task IResearcherService.Save()
+    {
+        await this.repository.SaveChanges().ConfigureAwait(false);
+    }
+
+    async Task<Researcher> IResearcherService.GetById(long id)
+    {
+        return await this.repository.GetById(id);
     }
 }

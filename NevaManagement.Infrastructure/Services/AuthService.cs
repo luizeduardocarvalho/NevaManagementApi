@@ -2,31 +2,53 @@
 
 public class AuthService : IAuthService
 {
-    private readonly IResearcherRepository repository;
+    private readonly IEncryptService encryptService;
+    private readonly IResearcherService researcherService;
+    private readonly ILogger<AuthService> logger;
 
-    public AuthService(IResearcherRepository repository)
+    public AuthService(
+        IEncryptService encryptService,
+        IResearcherService researcherService,
+        ILogger<AuthService> logger)
     {
-        this.repository = repository;
+        this.encryptService = encryptService;
+        this.researcherService = researcherService;
+        this.logger = logger;
     }
 
-    public async Task<bool> Register(RegisterDto registerDto)
+    async Task IAuthService.ChangePassword(ChangePasswordDto changePasswordDto)
     {
-        var user = new Researcher()
-        {
-            Email = registerDto.Email,
-            Name = registerDto.Name,
-            Password = registerDto.Password,
-            Role = registerDto.Role
-        };
-
         try
         {
-            await this.repository.Insert(user);
-            return await this.repository.SaveChanges();
+            var encryptedPassword = await this.encryptService
+                .Encrypt(changePasswordDto.OldPassword);
+            var user = await this.researcherService.GetByEmailAndPassword(
+                changePasswordDto.Email,
+                encryptedPassword);
+            
+            if (user != null)
+            {
+                var entity = await this.researcherService.GetById(user.Id);
+
+                var newEncryptedPassword = await this.encryptService
+                    .Encrypt(changePasswordDto.NewPassword);
+
+                entity.Password = newEncryptedPassword;
+
+                await this.researcherService.Save().ConfigureAwait(false);
+            }
+            else
+            {
+                throw new WrongPasswordException("Wrong password");
+            }
+        }
+        catch(WrongPasswordException e)
+        {
+            throw new WrongPasswordException(e.Message);
         }
         catch
         {
-            throw new Exception("An error occurred while creating the new researcher.");
+            throw new Exception("An error occurred while changing the password.");
         }
     }
 }

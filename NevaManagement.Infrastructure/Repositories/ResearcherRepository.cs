@@ -32,7 +32,7 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
             .Where(researcher => researcher.Email.Equals(email) && researcher.Password.Equals(password))
             .Select(r => new GetDetailedResearcherDto()
             {
-                Email = r.Name,
+                Email = r.Email,
                 Id = r.Id,
                 Name = r.Name,
                 Role = r.Role

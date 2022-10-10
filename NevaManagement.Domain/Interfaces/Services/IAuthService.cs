@@ -2,5 +2,5 @@
 
 public interface IAuthService
 {
-    Task<bool> Register(RegisterDto registerDto);
+    Task ChangePassword(ChangePasswordDto changePasswordDto);
 }
