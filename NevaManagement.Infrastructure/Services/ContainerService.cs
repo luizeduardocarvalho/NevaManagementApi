@@ -59,34 +59,42 @@ public class ContainerService : IContainerService
                 container.Origin = organism;
             }
 
-            var articles = await this.articleService.GetArticles(addContainerDto.DoiList.ToArray());
-
-            if (!articles.Any())
+            if (addContainerDto.DoiList is not null)
             {
-                foreach (var doi in addContainerDto.DoiList)
-                {
-                    var article = new Article()
-                    {
-                        Doi = doi
-                    };
+                var articles = await this.articleService.GetArticles(addContainerDto.DoiList.ToArray());
 
-                    articles.Add(article);
+                if (!articles.Any())
+                {
+                    foreach (var doi in addContainerDto.DoiList)
+                    {
+                        var article = new Article()
+                        {
+                            Doi = doi
+                        };
+
+                        articles.Add(article);
+                    }
+
                 }
 
-            }
-
-            foreach (var article in articles)
-            {
-                var articleContainer = new ArticleContainer()
+                foreach (var article in articles)
                 {
-                    ArticleId = article.Id,
-                    Container = container
-                };
+                    var articleContainer = new ArticleContainer()
+                    {
+                        ArticleId = article.Id,
+                        Container = container
+                    };
 
-                await this.articleContainerRepository.Insert(articleContainer);
+                    await this.articleContainerRepository.Insert(articleContainer);
+                }
+
+                return await this.articleContainerRepository.SaveChanges();
             }
-
-            return await this.articleContainerRepository.SaveChanges();
+            else
+            {
+                await this.repository.Insert(container);
+                return await this.repository.SaveChanges();
+            }
         }
         catch
         {

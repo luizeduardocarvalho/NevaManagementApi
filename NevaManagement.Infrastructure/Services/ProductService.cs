@@ -112,7 +112,6 @@ public class ProductService : IProductService
             return false;
         }
 
-
         try
         {
             product.Quantity -= useProductDto.Quantity;
@@ -129,7 +128,7 @@ public class ProductService : IProductService
             {
                 Researcher = researcher,
                 Product = product,
-                UsageDate = DateTimeOffset.Now,
+                UsageDate = DateTimeOffset.Now.UtcDateTime,
                 Description = useProductDto.Description,
                 Quantity = useProductDto.Quantity
             };
@@ -154,6 +153,7 @@ public class ProductService : IProductService
 
         product.Name = editProductDto.Name;
         product.Description = editProductDto.Description;
+        product.Formula = editProductDto.Formula;
 
         try
         {

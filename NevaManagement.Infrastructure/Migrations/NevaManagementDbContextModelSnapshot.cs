@@ -246,6 +246,9 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("ExpirationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Formula")
+                        .HasColumnType("text");
+
                     b.Property<long?>("Location_Id")
                         .HasColumnType("bigint");
 
