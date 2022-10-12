@@ -83,8 +83,8 @@ public class EquipmentUsageService : IEquipmentUsageService
                 ResearcherId = useEquipmentDto.ResearcherId,
                 EquipmentId = useEquipmentDto.EquipmentId,
                 Description = useEquipmentDto.Description,
-                StartDate = useEquipmentDto.StartDate,
-                EndDate = useEquipmentDto.EndDate
+                StartDate = useEquipmentDto.StartDate.UtcDateTime,
+                EndDate = useEquipmentDto.EndDate.UtcDateTime
             };
 
             await this.repository.Insert(equipmentUsage);
