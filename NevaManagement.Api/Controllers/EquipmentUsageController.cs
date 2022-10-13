@@ -37,4 +37,12 @@ public class EquipmentUsageController : ControllerBase
             Ok("Equipment was used successfully.") :
             StatusCode(500, "An error occurred while using the equipment.");
     }
+
+    [HttpGet("GetEquipmentUsage")]
+    public async Task<IActionResult> GetEquipmentUsage(long equipmentId, int page)
+    {
+        var result = await this.service.GetEquipmentUsage(equipmentId, page);
+
+        return Ok(result);
+    }
 }

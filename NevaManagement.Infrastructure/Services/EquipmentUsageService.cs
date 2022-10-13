@@ -95,4 +95,16 @@ public class EquipmentUsageService : IEquipmentUsageService
             throw new Exception("An error occurred while trying to use the equipment");
         }
     }
+
+    async Task<IList<GetEquipmentUsageDto>> IEquipmentUsageService.GetEquipmentUsage(long equipmentid, int page)
+    {
+        try
+        {
+            return await this.repository.GetEquipmentUsage(equipmentid, page);
+        }
+        catch
+        {
+            throw new Exception("An error occurred while getting the equipment history.");
+        }
+    }
 }

@@ -1,6 +1,4 @@
-﻿using NevaManagement.Domain.Dtos.EquipmentUsage;
-
-namespace NevaManagement.Infrastructure.Repositories;
+﻿namespace NevaManagement.Infrastructure.Repositories;
 
 public class EquipmentUsageRepository : BaseRepository<EquipmentUsage>, IEquipmentUsageRepository
 {
@@ -12,7 +10,7 @@ public class EquipmentUsageRepository : BaseRepository<EquipmentUsage>, IEquipme
         this.context = context;
     }
 
-    public async Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageByEquipment(long equipmentId)
+    async Task<IList<GetEquipmentUsageDto>> IEquipmentUsageRepository.GetEquipmentUsageByEquipment(long equipmentId)
     {
         return await this.context.EquipmentUsages
             .Where(equipmentUsage => equipmentUsage.EquipmentId == equipmentId)
@@ -31,7 +29,7 @@ public class EquipmentUsageRepository : BaseRepository<EquipmentUsage>, IEquipme
             .ToListAsync();
     }
 
-    public async Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageByDay(long equipmentId, DateTimeOffset startDate)
+    async Task<IList<GetEquipmentUsageDto>> IEquipmentUsageRepository.GetEquipmentUsageByDay(long equipmentId, DateTimeOffset startDate)
     {
         return await this.context.EquipmentUsages
             .Where(equipmentUsage => equipmentUsage.EquipmentId == equipmentId)
@@ -42,5 +40,26 @@ public class EquipmentUsageRepository : BaseRepository<EquipmentUsage>, IEquipme
                 EndDate = equipmentUsage.EndDate
             })
             .ToListAsync();
+    }
+
+    async Task<IList<GetEquipmentUsageDto>> IEquipmentUsageRepository.GetEquipmentUsage(long equipmentid, int page)
+    {
+        return await this.context.EquipmentUsages
+            .Where(x => x.EquipmentId == equipmentid)
+            .OrderByDescending(x => x.StartDate)
+            .Skip((page - 1) * 15)
+            .Take(15)
+            .Select(x => new GetEquipmentUsageDto
+            {
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Researcher = new GetSimpleResearcherDto
+                {
+                    Id = x.Researcher.Id,
+                    Name = x.Researcher.Name,
+                }
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
     }
 }
