@@ -12,11 +12,10 @@ public class AddContainerDto
     public string Description { get; set; }
 
     [Required]
-    public long? ResearcherId { get; set; }
+    public long ResearcherId { get; set; }
 
     public long? SubContainerId { get; set; }
 
-    [Required]
     public long? OrganismId { get; set; }
 
     [Required]
