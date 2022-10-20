@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Cors.Infrastructure;
-using NevaManagement.Api.Extensions;
-
-namespace NevaManagement.Api;
+﻿namespace NevaManagement.Api;
 
 public class Startup
 {
@@ -21,7 +18,7 @@ public class Startup
                .AllowAnyHeader()
                .AllowAnyMethod();
         }));
-        services.AddControllers();
+        services.AddControllers().AddNewtonsoftJson();
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "NevaManagement.Api", Version = "v1" });
