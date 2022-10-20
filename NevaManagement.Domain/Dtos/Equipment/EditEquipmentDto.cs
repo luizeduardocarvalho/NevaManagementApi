@@ -9,7 +9,7 @@ public class EditEquipmentDto
 
     public string Name { get; set; }
 
-    public string Patrimony { get; set; }
+    public string PropertyNumber { get; set; }
 
     public long LocationId { get; set; }
 }

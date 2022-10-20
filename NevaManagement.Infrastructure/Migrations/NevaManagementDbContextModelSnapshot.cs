@@ -130,7 +130,7 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("Patrimony")
+                    b.Property<string>("PropertyNumber")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
