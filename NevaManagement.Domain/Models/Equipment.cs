@@ -7,6 +7,11 @@ public class Equipment : BaseEntity
 
     public string Description { get; set; }
 
+    [ForeignKey("Location_Id")]
+    public Location Location { get; set; }
+
+    public string Patrimony { get; set; }
+
     [ForeignKey("EquipmentId")]
     public IList<EquipmentUsage> EquipmentUsages { get; set; }
 }

@@ -8,5 +8,9 @@ public class EditEquipmentDto
     public string Description { get; set; }
 
     public string Name { get; set; }
+
+    public string Patrimony { get; set; }
+
+    public long LocationId { get; set; }
 }
 

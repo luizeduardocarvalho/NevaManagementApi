@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NevaManagement.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NevaManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(NevaManagementDbContext))]
-    partial class NevaManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221019192552_MakeOrganismIdNullable")]
+    partial class MakeOrganismIdNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,18 +126,10 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<long?>("Location_Id")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("Patrimony")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("Location_Id");
 
                     b.ToTable("Equipment");
                 });
@@ -380,15 +374,6 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Navigation("Researcher");
 
                     b.Navigation("SubContainer");
-                });
-
-            modelBuilder.Entity("NevaManagement.Domain.Models.Equipment", b =>
-                {
-                    b.HasOne("NevaManagement.Domain.Models.Location", "Location")
-                        .WithMany()
-                        .HasForeignKey("Location_Id");
-
-                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.EquipmentUsage", b =>
