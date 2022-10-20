@@ -7,11 +7,11 @@ public class AddOrganismDto
 
     public string Type { get; set; }
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     public DateTimeOffset CollectionDate { get; set; }
 
-    public string CollectionLocation { get; set; }
+    //public string? CollectionLocation { get; set; }
 
     public DateTimeOffset IsolationDate { get; set; }
 

@@ -46,7 +46,7 @@ public class ContainerService : IContainerService
                 }
             }
 
-            var researcher = await this.researcherRepository.GetById(addContainerDto.ResearcherId.Value);
+            var researcher = await this.researcherRepository.GetById(addContainerDto.ResearcherId);
             if (researcher is not null)
             {
                 container.Researcher = researcher;
