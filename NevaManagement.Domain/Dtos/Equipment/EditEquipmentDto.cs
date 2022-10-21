@@ -11,6 +11,6 @@ public class EditEquipmentDto
 
     public string PropertyNumber { get; set; }
 
-    public long LocationId { get; set; }
+    public long? LocationId { get; set; }
 }
 

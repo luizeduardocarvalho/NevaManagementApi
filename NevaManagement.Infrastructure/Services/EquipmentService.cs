@@ -5,11 +5,16 @@ namespace NevaManagement.Infrastructure.Services;
 public class EquipmentService : IEquipmentService
 {
     private readonly IEquipmentRepository repository;
+    private readonly ILocationRepository locationRepository;
     private readonly IMapper mapper;
 
-    public EquipmentService(IEquipmentRepository repository, IMapper mapper)
+    public EquipmentService(
+        IEquipmentRepository repository,
+        ILocationRepository locationRepository,
+        IMapper mapper)
     {
         this.repository = repository;
+        this.locationRepository = locationRepository;
         this.mapper = mapper;
     }
 
@@ -48,8 +53,15 @@ public class EquipmentService : IEquipmentService
 
             if (equipment is not null)
             {
+                if(equipmentDto.LocationId is not null &&
+                   await this.locationRepository.GetById(equipmentDto.LocationId.Value) is Location location)
+                {
+                    equipment.Location = location;
+                }
+
                 equipment.Name = equipmentDto.Name;
-                equipment.Description = equipment.Description;
+                equipment.Description = equipmentDto.Description;
+                equipment.PropertyNumber = equipmentDto.PropertyNumber;
 
                 return await this.repository.SaveChanges();
             }

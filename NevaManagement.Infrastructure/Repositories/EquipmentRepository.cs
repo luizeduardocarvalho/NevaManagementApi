@@ -24,11 +24,18 @@ public class EquipmentRepository : BaseRepository<Equipment>, IEquipmentReposito
     public async Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id)
     {
         return await this.context.Equipments
+            .Include(x => x.Location)
             .Where(equipment => equipment.Id == id)
             .Select(equipment => new GetDetailedEquipmentDto
             {
                 Name = equipment.Name,
-                Description = equipment.Description
+                Description = equipment.Description,
+                PropertyNumber = equipment.PropertyNumber,
+                Location = new GetLocationDto()
+                {
+                    Id = equipment.Location.Id,
+                    Name = equipment.Location.Name
+                }
             })
             .FirstOrDefaultAsync();
     }
