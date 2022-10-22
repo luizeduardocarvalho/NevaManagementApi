@@ -13,7 +13,7 @@ public class Product : BaseEntity
 
     public double Quantity { get; set; }
 
-    public string Formula { get; set; }
+    public string? Formula { get; set; }
 
     public string Unit { get; set; }
 
