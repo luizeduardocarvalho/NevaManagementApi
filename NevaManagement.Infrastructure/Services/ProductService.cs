@@ -6,17 +6,20 @@ public class ProductService : IProductService
     private readonly ILocationRepository locationRepository;
     private readonly IResearcherRepository researcherRepository;
     private readonly IProductUsageRepository productUsageRepository;
+    private readonly ILogger<ProductService> logger;
 
     public ProductService(
         IProductRepository repository,
         ILocationRepository locationRepository,
         IResearcherRepository researcherRepository,
-        IProductUsageRepository productUsageRepository)
+        IProductUsageRepository productUsageRepository,
+        ILogger<ProductService> logger)
     {
         this.repository = repository;
         this.locationRepository = locationRepository;
         this.researcherRepository = researcherRepository;
         this.productUsageRepository = productUsageRepository;
+        this.logger = logger;
     }
 
     public async Task<IEnumerable<GetProductDto>> GetAll(int page)
@@ -173,36 +176,44 @@ public class ProductService : IProductService
 
     public async Task<IList<GetDetailedProductDto>> GetLowInStockProducts()
     {
-        var lastUses = await this.productUsageRepository.GetLastThreeMonthsUsesForAllProducts();
-
-        var totalUsedPerProduct = lastUses
-            .GroupBy(x => x.Product.Id)
-            .Select(x => new
-            {
-                TotalQuantityUsed = x.Sum(p => p.Quantity),
-                ProductId = x.Key,
-                ProductName = x.First().Product.Name,
-                QuantityInStock = x.First().Product.Quantity,
-                Unit = x.First().Product.Unit,
-            })
-            .Where(x => x.TotalQuantityUsed >= x.QuantityInStock);
-
-        var lowInStockProducts = new List<GetDetailedProductDto>();
-
-        foreach (var product in totalUsedPerProduct)
+        try
         {
-            var lowInStockProduct = new GetDetailedProductDto
+            var lastUses = await this.productUsageRepository.GetLastThreeMonthsUsesForAllProducts();
+
+            var totalUsedPerProduct = lastUses
+                .GroupBy(x => x.Product.Id)
+                .Select(x => new
+                {
+                    TotalQuantityUsed = x.Sum(p => p.Quantity),
+                    ProductId = x.Key,
+                    ProductName = x.First().Product.Name,
+                    QuantityInStock = x.First().Product.Quantity,
+                    Unit = x.First().Product.Unit,
+                })
+                .Where(x => x.TotalQuantityUsed >= x.QuantityInStock);
+
+            var lowInStockProducts = new List<GetDetailedProductDto>();
+
+            foreach (var product in totalUsedPerProduct)
             {
-                Id = product.ProductId,
-                Name = product.ProductName,
-                Quantity = product.QuantityInStock,
-                Unit = product.Unit,
-                QuantityUsedInTheLastThreeMonths = product.TotalQuantityUsed
-            };
+                var lowInStockProduct = new GetDetailedProductDto
+                {
+                    Id = product.ProductId,
+                    Name = product.ProductName,
+                    Quantity = product.QuantityInStock,
+                    Unit = product.Unit,
+                    QuantityUsedInTheLastThreeMonths = product.TotalQuantityUsed
+                };
 
-            lowInStockProducts.Add(lowInStockProduct);
+                lowInStockProducts.Add(lowInStockProduct);
+            }
+
+            return lowInStockProducts;
         }
-
-        return lowInStockProducts;
+        catch (Exception e)
+        {
+            this.logger.LogError(e, "An error occurred while getting low on stock products");
+            throw new Exception("An error occurred while getting low on stock products");
+        }
     }
 }
