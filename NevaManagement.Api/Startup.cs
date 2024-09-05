@@ -100,11 +100,10 @@ public class Startup
         app.UseHttpsRedirection();
 
         app.UseRouting();
+        app.UseCors("CorsPolicy");
 
         app.UseAuthentication();
         app.UseAuthorization();
-
-        app.UseCors("CorsPolicy");
 
         app.InitializeCache();
 
@@ -118,8 +117,9 @@ public class Startup
 
     public string GetConnectionString()
     {
-        var uriString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                            ?? Configuration.GetConnectionString("DATABASE_URL");
+        // var uriString = Environment.GetEnvironmentVariable("DATABASE_URL")
+        //                     ?? Configuration.GetConnectionString("DATABASE_URL");
+        var uriString = "postgres://uaveupar:jgAKQ20epkfSuRMGSLGSw9m4wr3cpBO_@castor.db.elephantsql.com/uaveupar";
         var uri = new Uri(uriString);
         var db = uri.AbsolutePath.Trim('/');
         var user = uri.UserInfo.Split(':')[0];
