@@ -1,4 +1,3 @@
-﻿using System.Data.Entity.Core;
 
 namespace NevaManagement.Infrastructure.Services;
 
@@ -66,7 +65,7 @@ public class EquipmentService : IEquipmentService
                 return await this.repository.SaveChanges();
             }
 
-            throw new ObjectNotFoundException($"The equipment with id {equipmentDto.Id} does not exist.");
+            throw new InvalidOperationException($"The equipment with id {equipmentDto.Id} does not exist.");
         }
         catch
         {
