@@ -117,9 +117,8 @@ public class Startup
 
     public string GetConnectionString()
     {
-        // var uriString = Environment.GetEnvironmentVariable("DATABASE_URL")
-        //                     ?? Configuration.GetConnectionString("DATABASE_URL");
-        var uriString = "postgres://tsmqnxpg:4RfvLhmf1Ks4qad4I5t2vWNz5nvFwQpA@isabelle.db.elephantsql.com/tsmqnxpg";
+        var uriString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                            ?? Configuration.GetConnectionString("DATABASE_URL");
         var uri = new Uri(uriString);
         var db = uri.AbsolutePath.Trim('/');
         var user = uri.UserInfo.Split(':')[0];
