@@ -1,4 +1,4 @@
-﻿using System.Data.Entity.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace NevaManagement.Infrastructure.Repositories;
 
