@@ -41,6 +41,35 @@ public class AuthController : ControllerBase
         return Ok(loggedUser);
     }
 
+    [AllowAnonymous]
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterAsync([FromBody] RegisterDto registerDto)
+    {
+        var encryptedPassword = await this.encryptService.Encrypt(registerDto.Password);
+
+        var researcher = new CreateResearcherDto
+        {
+            Name = registerDto.Name,
+            Email = registerDto.Email,
+            Password = encryptedPassword,
+            Role = registerDto.Role
+        };
+
+        var created = await this.researcherService.Create(researcher);
+
+        if (!created)
+            return BadRequest("Failed to create user.");
+
+        var user = await this.researcherService.GetByEmailAndPassword(registerDto.Email, encryptedPassword);
+        var token = await this.tokenService.GenerateToken(user);
+
+        user.Password = "";
+
+        var loggedUser = new LoggedUserDto { Researcher = user, Token = token };
+
+        return Ok(loggedUser);
+    }
+
     [HttpPost("ChangePassword")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {

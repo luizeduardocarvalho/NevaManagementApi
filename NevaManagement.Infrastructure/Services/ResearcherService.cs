@@ -40,7 +40,9 @@ public class ResearcherService : IResearcherService
         var newResearcher = new Researcher()
         {
             Name = researcher.Name,
-            Email = researcher.Email
+            Email = researcher.Email,
+            Password = researcher.Password,
+            Role = researcher.Role ?? "Researcher"
         };
 
         try
