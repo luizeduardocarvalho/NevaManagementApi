@@ -9,11 +9,11 @@ public class ResearcherService : IResearcherService
         this.repository = repository;
     }
 
-    async Task<IList<GetSimpleResearcherDto>> IResearcherService.GetResearchers()
+    async Task<IList<GetSimpleResearcherDto>> IResearcherService.GetResearchers(long laboratoryId)
     {
         try
         {
-            return await this.repository.GetResearchers().ConfigureAwait(false);
+            return await this.repository.GetResearchers(laboratoryId).ConfigureAwait(false);
         }
         catch
         {

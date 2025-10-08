@@ -12,6 +12,8 @@ public class NevaManagementDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductUsage> ProductUsages { get; set; }
     public DbSet<Researcher> Researchers { get; set; }
+    public DbSet<Laboratory> Laboratories { get; set; }
+    public DbSet<LaboratoryInvitation> LaboratoryInvitations { get; set; }
 
     public NevaManagementDbContext(DbContextOptions<NevaManagementDbContext> options)
         : base(options)

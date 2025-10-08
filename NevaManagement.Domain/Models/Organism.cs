@@ -24,4 +24,8 @@ public class Organism : BaseEntity
 
     [Column("Origin_Part")]
     public string OriginPart { get; set; }
+
+    [ForeignKey("Laboratory_Id")]
+    public Laboratory Laboratory { get; set; }
+    public long LaboratoryId { get; set; }
 }

@@ -11,4 +11,7 @@ public class GetDetailedResearcherDto
     public string Role { get; set; }
 
     public string Password { get; set; }
+
+    public long? LaboratoryId { get; set; }
+    public string LaboratoryName { get; set; }
 }

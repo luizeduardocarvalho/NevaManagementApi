@@ -2,7 +2,7 @@
 
 public interface IResearcherRepository : IBaseRepository<Researcher>
 {
-    Task<IEnumerable<Researcher>> GetAll();
-    Task<IList<GetSimpleResearcherDto>> GetResearchers();
+    Task<IEnumerable<Researcher>> GetAll(long laboratoryId);
+    Task<IList<GetSimpleResearcherDto>> GetResearchers(long laboratoryId);
     Task<GetDetailedResearcherDto> GetByEmailAndPassword(string email, string password);
 }

@@ -16,5 +16,7 @@ public static class ConfigureServicesExtension
         services.AddTransient<IArticleService, ArticleService>();
         services.AddTransient<IEquipmentService, EquipmentService>();
         services.AddTransient<IEquipmentUsageService, EquipmentUsageService>();
+        services.AddTransient<ILaboratoryService, LaboratoryService>();
+        services.AddTransient<ILaboratoryInvitationService, LaboratoryInvitationService>();
     }
 }

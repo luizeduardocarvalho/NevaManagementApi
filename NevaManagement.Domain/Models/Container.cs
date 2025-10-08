@@ -31,4 +31,8 @@ public class Container : BaseEntity
 
     [Column("TransferDate")]
     public DateTimeOffset TransferDate { get; set; }
+
+    [ForeignKey("Laboratory_Id")]
+    public Laboratory Laboratory { get; set; }
+    public long LaboratoryId { get; set; }
 }

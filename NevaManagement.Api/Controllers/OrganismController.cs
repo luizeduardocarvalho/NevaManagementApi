@@ -13,9 +13,9 @@ public class OrganismController : ControllerBase
     }
 
     [HttpGet("GetOrganisms")]
-    public async Task<IActionResult> GetOrganisms()
+    public async Task<IActionResult> GetOrganisms([FromQuery] long laboratoryId)
     {
-        var organisms = await this.service.GetOrganisms();
+        var organisms = await this.service.GetOrganisms(laboratoryId);
 
         return Ok(organisms);
     }
@@ -41,9 +41,9 @@ public class OrganismController : ControllerBase
     }
 
     [HttpGet("GetOrganismById")]
-    public async Task<IActionResult> GetOrganismById([FromQuery] long organismId)
+    public async Task<IActionResult> GetOrganismById([FromQuery] long organismId, [FromQuery] long laboratoryId)
     {
-        var location = await this.service.GetOrganismById(organismId);
+        var location = await this.service.GetOrganismById(organismId, laboratoryId);
 
         return Ok(location);
     }

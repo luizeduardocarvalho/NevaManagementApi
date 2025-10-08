@@ -2,6 +2,6 @@
 
 public interface IEquipmentRepository : IBaseRepository<Equipment>
 {
-    Task<IList<GetSimpleEquipmentDto>> GetEquipments();
-    Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id);
+    Task<IList<GetSimpleEquipmentDto>> GetEquipments(long laboratoryId);
+    Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id, long laboratoryId);
 }

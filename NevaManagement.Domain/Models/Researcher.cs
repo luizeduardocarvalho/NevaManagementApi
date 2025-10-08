@@ -8,4 +8,8 @@ public class Researcher : User
 
     [ForeignKey("ResearcherId")]
     public IList<EquipmentUsage> EquipmentUsages { get; set; }
+
+    [ForeignKey("Laboratory_Id")]
+    public Laboratory Laboratory { get; set; }
+    public long LaboratoryId { get; set; }
 }

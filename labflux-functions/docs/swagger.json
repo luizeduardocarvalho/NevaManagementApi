@@ -1,0 +1,189 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "LabFlux Functions API",
+    "version": "1.0.0",
+    "description": "A serverless API for laboratory management with multi-tenancy support"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api",
+  "schemes": ["http"],
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Type 'Bearer' followed by a space and JWT token"
+    }
+  },
+  "paths": {
+    "/webhooks/clerk": {
+      "post": {
+        "tags": ["webhooks"],
+        "summary": "Clerk Webhook Handler",
+        "description": "Handles Clerk user events (user.created, user.updated, user.deleted)",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "webhook",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {"type": "string"},
+                "object": {"type": "string"},
+                "data": {"type": "object"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {"description": "Webhook processed successfully"},
+          "400": {"description": "Invalid webhook data"}
+        }
+      }
+    },
+    "/auth/invite/{token}": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Accept Invitation",
+        "description": "Accept laboratory invitation with Clerk user ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "request",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "clerk_user_id": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {"description": "Invitation accepted successfully"},
+          "400": {"description": "Invalid request"},
+          "404": {"description": "Invitation not found"}
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "Get Current User",
+        "description": "Get current authenticated user information",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {"description": "User information"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/laboratories": {
+      "post": {
+        "tags": ["laboratories"],
+        "summary": "Create Laboratory",
+        "description": "Creates a new laboratory and assigns the current user as admin",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "laboratory",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {"type": "string"},
+                "description": {"type": "string"},
+                "address": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {"description": "Laboratory created successfully"},
+          "400": {"description": "Invalid request"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/laboratories/{laboratoryId}": {
+      "get": {
+        "tags": ["laboratories"],
+        "summary": "Get Laboratory",
+        "description": "Get laboratory details by ID",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "laboratoryId",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {"description": "Laboratory details"},
+          "404": {"description": "Laboratory not found"}
+        }
+      }
+    },
+    "/laboratories/{laboratoryId}/invitations": {
+      "post": {
+        "tags": ["invitations"],
+        "summary": "Create Invitation",
+        "description": "Create laboratory invitation",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "laboratoryId",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "invitation",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {"type": "string"},
+                "role": {"type": "string"}
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {"description": "Invitation created successfully"},
+          "400": {"description": "Invalid request"},
+          "401": {"description": "Unauthorized"}
+        }
+      },
+      "get": {
+        "tags": ["invitations"],
+        "summary": "Get Invitations",
+        "description": "Get laboratory invitations",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "laboratoryId",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {"description": "List of invitations"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    }
+  }
+}

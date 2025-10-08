@@ -13,17 +13,17 @@ public class EquipmentUsageController : ControllerBase
     }
 
     [HttpGet("GetEquipmentUsageCalendar")]
-    public async Task<IActionResult> GetEquipmentUsageCalendar([FromQuery] long id)
+    public async Task<IActionResult> GetEquipmentUsageCalendar([FromQuery] long id, [FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetEquipmentUsageCalendar(id);
+        var result = await this.service.GetEquipmentUsageCalendar(id, laboratoryId);
 
         return Ok(result);
     }
 
     [HttpGet("GetEquipmentUsageHistory")]
-    public async Task<IActionResult> GetEquipmentUsageHistory([FromQuery] long id)
+    public async Task<IActionResult> GetEquipmentUsageHistory([FromQuery] long id, [FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetEquipmentUsageHistory(id);
+        var result = await this.service.GetEquipmentUsageHistory(id, laboratoryId);
 
         return Ok(result);
     }
@@ -39,9 +39,9 @@ public class EquipmentUsageController : ControllerBase
     }
 
     [HttpGet("GetEquipmentUsage")]
-    public async Task<IActionResult> GetEquipmentUsage(long equipmentId, int page)
+    public async Task<IActionResult> GetEquipmentUsage(long equipmentId, int page, long laboratoryId)
     {
-        var result = await this.service.GetEquipmentUsage(equipmentId, page);
+        var result = await this.service.GetEquipmentUsage(equipmentId, page, laboratoryId);
 
         return Ok(result);
     }

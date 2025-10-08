@@ -38,7 +38,7 @@ public class ContainerService : IContainerService
 
             if (addContainerDto.SubContainerId is not null)
             {
-                var subContainer = await this.repository.GetEntityById(addContainerDto.SubContainerId.Value);
+                var subContainer = await this.repository.GetEntityById(addContainerDto.SubContainerId.Value, addContainerDto.LaboratoryId);
                 if (subContainer is not null)
                 {
                     container.SubContainer = subContainer;
@@ -102,11 +102,11 @@ public class ContainerService : IContainerService
         }
     }
 
-    public async Task<IList<GetSimpleContainerDto>> GetContainers()
+    public async Task<IList<GetSimpleContainerDto>> GetContainers(long laboratoryId)
     {
         try
         {
-            return await this.repository.GetContainers();
+            return await this.repository.GetContainers(laboratoryId);
         }
         catch
         {
@@ -114,11 +114,11 @@ public class ContainerService : IContainerService
         }
     }
 
-    public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id)
+    public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetChildrenContainers(id);
+            return await this.repository.GetChildrenContainers(id, laboratoryId);
         }
         catch
         {
@@ -126,11 +126,11 @@ public class ContainerService : IContainerService
         }
     }
 
-    public async Task<GetDetailedContainerDto> GetDetailedContainer(long id)
+    public async Task<GetDetailedContainerDto> GetDetailedContainer(long id, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetDetailedContainer(id);
+            return await this.repository.GetDetailedContainer(id, laboratoryId);
         }
         catch
         {
@@ -138,11 +138,11 @@ public class ContainerService : IContainerService
         }
     }
 
-    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page = 0)
+    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetContainersOrderedByTransferDate(page);
+            return await this.repository.GetContainersOrderedByTransferDate(page, laboratoryId);
         }
         catch
         {

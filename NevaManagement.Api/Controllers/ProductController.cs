@@ -13,25 +13,25 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("GetAll")]
-    public async Task<IActionResult> GetAll([FromQuery] int page)
+    public async Task<IActionResult> GetAll([FromQuery] int page, [FromQuery] long laboratoryId)
     {
-        var products = await this.service.GetAll(page);
+        var products = await this.service.GetAll(page, laboratoryId);
 
         return Ok(products);
     }
 
     [HttpGet("GetDetailedProductById")]
-    public async Task<IActionResult> GetDetailedProductById([FromQuery] long id)
+    public async Task<IActionResult> GetDetailedProductById([FromQuery] long id, [FromQuery] long laboratoryId)
     {
-        var product = await this.service.GetDetailedProductById(id);
+        var product = await this.service.GetDetailedProductById(id, laboratoryId);
 
         return Ok(product);
     }
 
     [HttpGet("GetProductById")]
-    public async Task<IActionResult> GetProductById([FromQuery] long id)
+    public async Task<IActionResult> GetProductById([FromQuery] long id, [FromQuery] long laboratoryId)
     {
-        var product = await this.service.GetById(id);
+        var product = await this.service.GetById(id, laboratoryId);
 
         return Ok(product);
     }

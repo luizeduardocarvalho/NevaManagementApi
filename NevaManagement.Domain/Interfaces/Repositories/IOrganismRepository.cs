@@ -2,6 +2,6 @@
 
 public interface IOrganismRepository : IBaseRepository<Organism>
 {
-    Task<GetDetailedOrganismDto> GetDetailedOrganismById(long id);
-    Task<IList<GetOrganismDto>> GetOrganisms();
+    Task<GetDetailedOrganismDto> GetDetailedOrganismById(long id, long laboratoryId);
+    Task<IList<GetOrganismDto>> GetOrganisms(long laboratoryId);
 }

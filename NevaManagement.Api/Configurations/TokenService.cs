@@ -17,9 +17,8 @@ public class TokenService : ITokenService
     {
         try
         {
-            var secret = this.settings.Value.Secret;
-            if (string.IsNullOrEmpty(secret))
-                secret = Environment.GetEnvironmentVariable("Settings");
+            var secret = Environment.GetEnvironmentVariable("Settings") 
+                ?? this.settings.Value.Secret;
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secret);
@@ -28,7 +27,10 @@ public class TokenService : ITokenService
                 Subject = new ClaimsIdentity(new[]
                 {
                         new Claim(ClaimTypes.Name, user.Email),
-                        new Claim(ClaimTypes.Role, user.Role)
+                        new Claim(ClaimTypes.Role, user.Role),
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                        new Claim("LaboratoryId", user.LaboratoryId?.ToString() ?? ""),
+                        new Claim("LaboratoryName", user.LaboratoryName ?? "")
                     }),
                 Expires = DateTime.UtcNow.AddDays(30),
                 SigningCredentials = new SigningCredentials(

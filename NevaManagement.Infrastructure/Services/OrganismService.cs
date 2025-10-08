@@ -13,9 +13,9 @@ public class OrganismService : IOrganismService
         this.builder = builder;
     }
 
-    public async Task<IList<GetOrganismDto>> GetOrganisms()
+    public async Task<IList<GetOrganismDto>> GetOrganisms(long laboratoryId)
     {
-        return await this.repository.GetOrganisms();
+        return await this.repository.GetOrganisms(laboratoryId);
     }
 
     public async Task<bool> AddOrganism(AddOrganismDto addOrganismDto)
@@ -63,11 +63,11 @@ public class OrganismService : IOrganismService
         return result;
     }
 
-    public async Task<GetDetailedOrganismDto> GetOrganismById(long organismId)
+    public async Task<GetDetailedOrganismDto> GetOrganismById(long organismId, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetDetailedOrganismById(organismId);
+            return await this.repository.GetDetailedOrganismById(organismId, laboratoryId);
         }
         catch
         {

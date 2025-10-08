@@ -16,4 +16,8 @@ public class EquipmentUsage : BaseEntity
     public DateTimeOffset EndDate { get; set; }
 
     public string Description { get; set; }
+
+    [ForeignKey("Laboratory_Id")]
+    public Laboratory Laboratory { get; set; }
+    public long LaboratoryId { get; set; }
 }

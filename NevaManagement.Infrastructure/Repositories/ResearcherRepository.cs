@@ -10,14 +10,17 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
         this.context = context;
     }
 
-    public async Task<IEnumerable<Researcher>> GetAll()
-    {
-        return await this.context.Researchers.ToListAsync();
-    }
-
-    public async Task<IList<GetSimpleResearcherDto>> GetResearchers()
+    public async Task<IEnumerable<Researcher>> GetAll(long laboratoryId)
     {
         return await this.context.Researchers
+            .Where(r => r.LaboratoryId == laboratoryId)
+            .ToListAsync();
+    }
+
+    public async Task<IList<GetSimpleResearcherDto>> GetResearchers(long laboratoryId)
+    {
+        return await this.context.Researchers
+                .Where(x => x.LaboratoryId == laboratoryId)
                 .Select(x => new GetSimpleResearcherDto
                 {
                     Id = x.Id,
@@ -30,12 +33,15 @@ public class ResearcherRepository : BaseRepository<Researcher>, IResearcherRepos
     {
         return await this.context.Researchers
             .Where(researcher => researcher.Email.Equals(email) && researcher.Password.Equals(password))
+            .Include(r => r.Laboratory)
             .Select(r => new GetDetailedResearcherDto()
             {
                 Email = r.Email,
                 Id = r.Id,
                 Name = r.Name,
-                Role = r.Role
+                Role = r.Role,
+                LaboratoryId = r.LaboratoryId,
+                LaboratoryName = r.Laboratory != null ? r.Laboratory.Name : null
             })
             .FirstOrDefaultAsync();
     }

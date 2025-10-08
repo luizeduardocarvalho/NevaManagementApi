@@ -18,4 +18,8 @@ public class Product : BaseEntity
     public string Unit { get; set; }
 
     public DateTimeOffset ExpirationDate { get; set; }
+
+    [ForeignKey("Laboratory_Id")]
+    public Laboratory Laboratory { get; set; }
+    public long LaboratoryId { get; set; }
 }

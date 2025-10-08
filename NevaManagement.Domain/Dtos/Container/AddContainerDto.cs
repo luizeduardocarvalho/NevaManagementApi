@@ -23,4 +23,7 @@ public class AddContainerDto
 
     [Required]
     public DateTimeOffset TransferDate { get; set; }
+
+    [Required]
+    public long LaboratoryId { get; set; }
 }

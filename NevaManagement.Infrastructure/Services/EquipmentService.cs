@@ -17,11 +17,11 @@ public class EquipmentService : IEquipmentService
         this.mapper = mapper;
     }
 
-    public async Task<IList<GetSimpleEquipmentDto>> GetEquipments()
+    public async Task<IList<GetSimpleEquipmentDto>> GetEquipments(long laboratoryId)
     {
         try
         {
-            return await this.repository.GetEquipments();
+            return await this.repository.GetEquipments(laboratoryId);
         }
         catch
         {
@@ -73,11 +73,11 @@ public class EquipmentService : IEquipmentService
         }
     }
 
-    public async Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id)
+    public async Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetDetailedEquipment(id);
+            return await this.repository.GetDetailedEquipment(id, laboratoryId);
         }
         catch
         {

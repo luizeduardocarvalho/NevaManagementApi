@@ -12,9 +12,9 @@ public class ResearcherController : ControllerBase
     }
 
     [HttpGet("GetResearchers")]
-    public async Task<IActionResult> GetResearchers()
+    public async Task<IActionResult> GetResearchers([FromQuery] long laboratoryId)
     {
-        var researchers = await this.service.GetResearchers();
+        var researchers = await this.service.GetResearchers(laboratoryId);
 
         return Ok(researchers);
     }

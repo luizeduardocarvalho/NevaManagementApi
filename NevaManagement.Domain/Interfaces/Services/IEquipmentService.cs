@@ -2,8 +2,8 @@
 
 public interface IEquipmentService
 {
-    Task<IList<GetSimpleEquipmentDto>> GetEquipments();
+    Task<IList<GetSimpleEquipmentDto>> GetEquipments(long laboratoryId);
     Task<bool> AddEquipment(AddEquipmentDto equipmentDto);
     Task<bool> EditEquipment(EditEquipmentDto equipmentDto);
-    Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id);
+    Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id, long laboratoryId);
 }

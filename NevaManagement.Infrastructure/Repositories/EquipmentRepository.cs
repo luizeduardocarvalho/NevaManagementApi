@@ -10,9 +10,10 @@ public class EquipmentRepository : BaseRepository<Equipment>, IEquipmentReposito
         this.context = context;
     }
 
-    public async Task<IList<GetSimpleEquipmentDto>> GetEquipments()
+    public async Task<IList<GetSimpleEquipmentDto>> GetEquipments(long laboratoryId)
     {
         return await this.context.Equipments
+            .Where(equipment => equipment.LaboratoryId == laboratoryId)
             .Select(equipment => new GetSimpleEquipmentDto()
             {
                 Id = equipment.Id,
@@ -21,11 +22,11 @@ public class EquipmentRepository : BaseRepository<Equipment>, IEquipmentReposito
             .ToListAsync();
     }
 
-    public async Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id)
+    public async Task<GetDetailedEquipmentDto> GetDetailedEquipment(long id, long laboratoryId)
     {
         return await this.context.Equipments
             .Include(x => x.Location)
-            .Where(equipment => equipment.Id == id)
+            .Where(equipment => equipment.Id == id && equipment.LaboratoryId == laboratoryId)
             .Select(equipment => new GetDetailedEquipmentDto
             {
                 Name = equipment.Name,

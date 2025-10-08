@@ -17,7 +17,7 @@ namespace NevaManagement.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.5")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -83,6 +83,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<long?>("Equipment_Id")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
@@ -104,6 +110,8 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     b.HasIndex("Equipment_Id");
 
+                    b.HasIndex("Laboratory_Id");
+
                     b.HasIndex("Origin_Id");
 
                     b.HasIndex("Researcher_Id");
@@ -124,6 +132,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("Location_Id")
                         .HasColumnType("bigint");
 
@@ -134,6 +148,8 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Laboratory_Id");
 
                     b.HasIndex("Location_Id");
 
@@ -157,6 +173,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<long>("EquipmentId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("ResearcherId")
                         .HasColumnType("bigint");
 
@@ -167,9 +189,116 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     b.HasIndex("EquipmentId");
 
+                    b.HasIndex("Laboratory_Id");
+
                     b.HasIndex("ResearcherId");
 
                     b.ToTable("EquipmentUsage");
+                });
+
+            modelBuilder.Entity("NevaManagement.Domain.Models.Laboratory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Laboratory");
+                });
+
+            modelBuilder.Entity("NevaManagement.Domain.Models.LaboratoryInvitation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("AcceptedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("AcceptedBy_Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InvitationToken")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("InvitedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InvitedBy_Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("InviteeEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("InviteeName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("IsAccepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcceptedBy_Id");
+
+                    b.HasIndex("InvitedBy_Id");
+
+                    b.HasIndex("Laboratory_Id");
+
+                    b.ToTable("LaboratoryInvitation");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.Location", b =>
@@ -183,6 +312,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -190,6 +325,8 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Laboratory_Id");
 
                     b.HasIndex("Sub_Location_Id");
 
@@ -219,6 +356,12 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("Isolation_Date");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -234,6 +377,8 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Laboratory_Id");
 
                     b.HasIndex("Origin_Id");
 
@@ -257,6 +402,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Formula")
                         .HasColumnType("text");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("Location_Id")
                         .HasColumnType("bigint");
 
@@ -271,6 +422,8 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Laboratory_Id");
 
                     b.HasIndex("Location_Id");
 
@@ -288,6 +441,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("Product_Id")
                         .HasColumnType("bigint");
 
@@ -302,6 +461,8 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnName("Usage_Date");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Laboratory_Id");
 
                     b.HasIndex("Product_Id");
 
@@ -321,6 +482,12 @@ namespace NevaManagement.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
+                    b.Property<long>("LaboratoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("Laboratory_Id")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
@@ -332,6 +499,8 @@ namespace NevaManagement.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Laboratory_Id");
 
                     b.ToTable("Researcher");
                 });
@@ -361,6 +530,10 @@ namespace NevaManagement.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("Equipment_Id");
 
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Organism", "Origin")
                         .WithMany()
                         .HasForeignKey("Origin_Id");
@@ -375,6 +548,8 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     b.Navigation("Equipment");
 
+                    b.Navigation("Laboratory");
+
                     b.Navigation("Origin");
 
                     b.Navigation("Researcher");
@@ -384,9 +559,15 @@ namespace NevaManagement.Infrastructure.Migrations
 
             modelBuilder.Entity("NevaManagement.Domain.Models.Equipment", b =>
                 {
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("Location_Id");
+
+                    b.Navigation("Laboratory");
 
                     b.Navigation("Location");
                 });
@@ -399,6 +580,10 @@ namespace NevaManagement.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Researcher", "Researcher")
                         .WithMany("EquipmentUsages")
                         .HasForeignKey("ResearcherId")
@@ -407,38 +592,83 @@ namespace NevaManagement.Infrastructure.Migrations
 
                     b.Navigation("Equipment");
 
+                    b.Navigation("Laboratory");
+
                     b.Navigation("Researcher");
+                });
+
+            modelBuilder.Entity("NevaManagement.Domain.Models.LaboratoryInvitation", b =>
+                {
+                    b.HasOne("NevaManagement.Domain.Models.Researcher", "AcceptedBy")
+                        .WithMany()
+                        .HasForeignKey("AcceptedBy_Id");
+
+                    b.HasOne("NevaManagement.Domain.Models.Researcher", "InvitedBy")
+                        .WithMany()
+                        .HasForeignKey("InvitedBy_Id");
+
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
+                    b.Navigation("AcceptedBy");
+
+                    b.Navigation("InvitedBy");
+
+                    b.Navigation("Laboratory");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.Location", b =>
                 {
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Location", "SubLocation")
                         .WithMany()
                         .HasForeignKey("Sub_Location_Id");
+
+                    b.Navigation("Laboratory");
 
                     b.Navigation("SubLocation");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.Organism", b =>
                 {
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Organism", "Origin")
                         .WithMany()
                         .HasForeignKey("Origin_Id");
+
+                    b.Navigation("Laboratory");
 
                     b.Navigation("Origin");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.Product", b =>
                 {
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("Location_Id");
+
+                    b.Navigation("Laboratory");
 
                     b.Navigation("Location");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.ProductUsage", b =>
                 {
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
                     b.HasOne("NevaManagement.Domain.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("Product_Id");
@@ -447,9 +677,20 @@ namespace NevaManagement.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("Researcher_Id");
 
+                    b.Navigation("Laboratory");
+
                     b.Navigation("Product");
 
                     b.Navigation("Researcher");
+                });
+
+            modelBuilder.Entity("NevaManagement.Domain.Models.Researcher", b =>
+                {
+                    b.HasOne("NevaManagement.Domain.Models.Laboratory", "Laboratory")
+                        .WithMany()
+                        .HasForeignKey("Laboratory_Id");
+
+                    b.Navigation("Laboratory");
                 });
 
             modelBuilder.Entity("NevaManagement.Domain.Models.Article", b =>

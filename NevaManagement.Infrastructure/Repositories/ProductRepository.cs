@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace NevaManagement.Infrastructure.Repositories;
+﻿namespace NevaManagement.Infrastructure.Repositories;
 
 public class ProductRepository : BaseRepository<Product>, IProductRepository
 {
@@ -12,9 +10,10 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
         this.context = context;
     }
 
-    public async Task<IEnumerable<GetProductDto>> GetAll(int page)
+    public async Task<IEnumerable<GetProductDto>> GetAll(int page, long laboratoryId)
     {
         return await this.context.Products
+            .Where(x => x.LaboratoryId == laboratoryId)
             .OrderBy(x => x.Name)
             .Skip((page - 1) * 15)
             .Take(15)
@@ -25,10 +24,10 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
             }).ToListAsync();
     }
 
-    public async Task<GetProductDto> GetProductById(long id)
+    public async Task<GetProductDto> GetProductById(long id, long laboratoryId)
     {
         return await this.context.Products
-            .Where(x => x.Id == id)
+            .Where(x => x.Id == id && x.LaboratoryId == laboratoryId)
             .Select(x => new GetProductDto
             {
                 Id = x.Id,
@@ -37,10 +36,10 @@ public class ProductRepository : BaseRepository<Product>, IProductRepository
             .SingleOrDefaultAsync();
     }
 
-    public async Task<GetDetailedProductDto> GetDetailedProductById(long id)
+    public async Task<GetDetailedProductDto> GetDetailedProductById(long id, long laboratoryId)
     {
         return await this.context.Products
-            .Where(x => x.Id == id)
+            .Where(x => x.Id == id && x.LaboratoryId == laboratoryId)
             .Include(x => x.Location)
             .Select(x => new GetDetailedProductDto
             {

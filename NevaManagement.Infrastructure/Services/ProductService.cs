@@ -22,11 +22,11 @@ public class ProductService : IProductService
         this.logger = logger;
     }
 
-    public async Task<IEnumerable<GetProductDto>> GetAll(int page)
+    public async Task<IEnumerable<GetProductDto>> GetAll(int page, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetAll(page);
+            return await this.repository.GetAll(page, laboratoryId);
         }
         catch (Exception ex)
         {
@@ -34,11 +34,11 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<GetDetailedProductDto> GetDetailedProductById(long id)
+    public async Task<GetDetailedProductDto> GetDetailedProductById(long id, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetDetailedProductById(id);
+            return await this.repository.GetDetailedProductById(id, laboratoryId);
         }
         catch (Exception ex)
         {
@@ -46,9 +46,9 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<GetProductDto> GetById(long id)
+    public async Task<GetProductDto> GetById(long id, long laboratoryId)
     {
-        return await this.repository.GetProductById(id);
+        return await this.repository.GetProductById(id, laboratoryId);
     }
 
     public async Task<bool> Create(CreateProductDto productDto)
@@ -69,6 +69,7 @@ public class ProductService : IProductService
                 Name = productDto.Name,
                 Quantity = productDto.Quantity,
                 Unit = productDto.Unit,
+                LaboratoryId = productDto.LaboratoryId,
             };
 
             if (productDto.ParsedExpirationDate != null)

@@ -2,9 +2,9 @@
 
 public interface IContainerRepository : IBaseRepository<Container>
 {
-    Task<IList<GetSimpleContainerDto>> GetContainers();
-    Task<Container> GetEntityById(long id);
-    Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id);
-    Task<GetDetailedContainerDto> GetDetailedContainer(long id);
-    Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page);
+    Task<IList<GetSimpleContainerDto>> GetContainers(long laboratoryId);
+    Task<Container> GetEntityById(long id, long laboratoryId);
+    Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id, long laboratoryId);
+    Task<GetDetailedContainerDto> GetDetailedContainer(long id, long laboratoryId);
+    Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page, long laboratoryId);
 }

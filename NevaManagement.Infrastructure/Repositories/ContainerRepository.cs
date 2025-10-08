@@ -10,9 +10,10 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
         this.context = context;
     }
 
-    public async Task<IList<GetSimpleContainerDto>> GetContainers()
+    public async Task<IList<GetSimpleContainerDto>> GetContainers(long laboratoryId)
     {
         return await this.context.Containers
+            .Where(x => x.LaboratoryId == laboratoryId)
             .Select(x => new GetSimpleContainerDto
             {
                 Id = x.Id,
@@ -21,10 +22,10 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
             .ToListAsync();
     }
 
-    public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id)
+    public async Task<IList<GetSimpleContainerDto>> GetChildrenContainers(long id, long laboratoryId)
     {
         return await this.context.Containers
-            .Where(container => container.SubContainer.Id == id)
+            .Where(container => container.SubContainer.Id == id && container.LaboratoryId == laboratoryId)
             .Select(container => new GetSimpleContainerDto
             {
                 Id = container.Id,
@@ -33,10 +34,10 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
             .ToListAsync();
     }
 
-    public async Task<GetDetailedContainerDto> GetDetailedContainer(long id)
+    public async Task<GetDetailedContainerDto> GetDetailedContainer(long id, long laboratoryId)
     {
         return await this.context.Containers
-            .Where(container => container.Id == id)
+            .Where(container => container.Id == id && container.LaboratoryId == laboratoryId)
             .Include(container => container.ArticleContainerList)
             .Include(container => container.Researcher)
             .Include(container => container.Origin)
@@ -55,17 +56,18 @@ public class ContainerRepository : BaseRepository<Container>, IContainerReposito
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Container> GetEntityById(long id)
+    public async Task<Container> GetEntityById(long id, long laboratoryId)
     {
         return await this.context.Containers
             .Include(x => x.ArticleContainerList)
             .ThenInclude(x => x.Article)
-            .Where(x => x.Id == id).SingleOrDefaultAsync();
+            .Where(x => x.Id == id && x.LaboratoryId == laboratoryId).SingleOrDefaultAsync();
     }
 
-    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page)
+    public async Task<IList<GetContainersByTransferDateDto>> GetContainersOrderedByTransferDate(int page, long laboratoryId)
     {
         return await this.context.Containers
+            .Where(x => x.LaboratoryId == laboratoryId)
             .OrderBy(x => x.Name)
             .Skip((page - 1) * 15)
             .Take(15)

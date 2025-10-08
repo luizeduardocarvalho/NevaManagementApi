@@ -15,5 +15,7 @@ public static class ConfigureRepositoriesExtension
         services.AddTransient<IArticleContainerRepository, ArticleContainerRepository>();
         services.AddTransient<IEquipmentRepository, EquipmentRepository>();
         services.AddTransient<IEquipmentUsageRepository, EquipmentUsageRepository>();
+        services.AddTransient<ILaboratoryRepository, LaboratoryRepository>();
+        services.AddTransient<ILaboratoryInvitationRepository, LaboratoryInvitationRepository>();
     }
 }

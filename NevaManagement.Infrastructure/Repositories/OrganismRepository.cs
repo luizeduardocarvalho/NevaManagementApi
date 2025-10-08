@@ -1,12 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-using NevaManagement.Domain.Interfaces.Repositories;
-using NevaManagement.Domain.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace NevaManagement.Infrastructure.Repositories;
+﻿namespace NevaManagement.Infrastructure.Repositories;
 
 public class OrganismRepository : BaseRepository<Organism>, IOrganismRepository
 {
@@ -18,10 +10,10 @@ public class OrganismRepository : BaseRepository<Organism>, IOrganismRepository
         this.context = context;
     }
 
-    public async Task<GetDetailedOrganismDto> GetDetailedOrganismById(long id)
+    public async Task<GetDetailedOrganismDto> GetDetailedOrganismById(long id, long laboratoryId)
     {
         return await this.context.Organisms
-                                    .Where(x => x.Id == id)
+                                    .Where(x => x.Id == id && x.LaboratoryId == laboratoryId)
                                     .Include(x => x.Origin)
                                     .Select(x => new GetDetailedOrganismDto
                                     {
@@ -43,9 +35,10 @@ public class OrganismRepository : BaseRepository<Organism>, IOrganismRepository
                                     .FirstOrDefaultAsync();
     }
 
-    public async Task<IList<GetOrganismDto>> GetOrganisms()
+    public async Task<IList<GetOrganismDto>> GetOrganisms(long laboratoryId)
     {
         return await this.context.Organisms
+            .Where(x => x.LaboratoryId == laboratoryId)
             .Select(x => new GetOrganismDto
             {
                 Id = x.Id,

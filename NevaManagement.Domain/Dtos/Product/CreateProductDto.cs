@@ -20,6 +20,9 @@ public class CreateProductDto
 
     public string ExpirationDate { get; set; }
 
+    [Required]
+    public long LaboratoryId { get; set; }
+
     [JsonIgnore]
     public DateTimeOffset? ParsedExpirationDate
     {

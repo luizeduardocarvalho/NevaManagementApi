@@ -9,35 +9,32 @@ public class EquipmentUsageService : IEquipmentUsageService
         this.repository = repository;
     }
 
-    public async Task<IList<EquipmentUsageCalendarDto>> GetEquipmentUsageCalendar(long equipmentId)
+    public async Task<IList<EquipmentUsageCalendarDto>> GetEquipmentUsageCalendar(long equipmentId, long laboratoryId)
     {
         try
         {
-            var result = await this.repository.GetEquipmentUsageByEquipment(equipmentId);
+            var result = await this.repository.GetEquipmentUsageByEquipment(equipmentId, laboratoryId);
 
-            var nestedDates =
-                from month in result
-                group month by month.StartDate.Month into months
-                from days in (
-                    from day in months
-                    group day by day.StartDate.Day
-                )
-                group days by months.Key into all
-                select new EquipmentUsageCalendarDto
+            var nestedDates = result
+                .GroupBy(x => x.StartDate.Month)
+                .Select(monthGroup => new EquipmentUsageCalendarDto
                 {
-                    Month = all.Key,
-                    Days = all.Select(x =>
-                      new Day
-                      {
-                          DayNumber = x.Key,
-                          Appointments = x.Select(t => 
-                            new Appointment 
-                            { 
-                                StartDate = t.StartDate,
-                                EndDate = t.EndDate 
-                            }).ToList()
-                      }).ToList()
-                };
+                    Month = monthGroup.Key,
+                    Days = monthGroup
+                        .GroupBy(x => x.StartDate.Day)
+                        .Select(dayGroup => new Day
+                        {
+                            DayNumber = dayGroup.Key,
+                            Appointments = dayGroup
+                                .Select(usage => new Appointment
+                                {
+                                    StartDate = usage.StartDate,
+                                    EndDate = usage.EndDate
+                                })
+                                .ToList()
+                        })
+                        .ToList()
+                });
 
             return nestedDates.ToList();
         }
@@ -47,11 +44,11 @@ public class EquipmentUsageService : IEquipmentUsageService
         }
     }
 
-    public async Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageHistory(long id)
+    public async Task<IList<GetEquipmentUsageDto>> GetEquipmentUsageHistory(long id, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetEquipmentUsageByEquipment(id);
+            return await this.repository.GetEquipmentUsageByEquipment(id, laboratoryId);
         }
         catch
         {
@@ -66,7 +63,8 @@ public class EquipmentUsageService : IEquipmentUsageService
             var dates = await this.repository
                 .GetEquipmentUsageByDay(
                     useEquipmentDto.EquipmentId,
-                    useEquipmentDto.StartDate);
+                    useEquipmentDto.StartDate,
+                    useEquipmentDto.LaboratoryId);
 
             foreach (var date in dates)
             {
@@ -84,7 +82,8 @@ public class EquipmentUsageService : IEquipmentUsageService
                 EquipmentId = useEquipmentDto.EquipmentId,
                 Description = useEquipmentDto.Description,
                 StartDate = useEquipmentDto.StartDate.UtcDateTime,
-                EndDate = useEquipmentDto.EndDate.UtcDateTime
+                EndDate = useEquipmentDto.EndDate.UtcDateTime,
+                LaboratoryId = useEquipmentDto.LaboratoryId
             };
 
             await this.repository.Insert(equipmentUsage);
@@ -96,11 +95,11 @@ public class EquipmentUsageService : IEquipmentUsageService
         }
     }
 
-    async Task<IList<GetEquipmentUsageDto>> IEquipmentUsageService.GetEquipmentUsage(long equipmentid, int page)
+    async Task<IList<GetEquipmentUsageDto>> IEquipmentUsageService.GetEquipmentUsage(long equipmentid, int page, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetEquipmentUsage(equipmentid, page);
+            return await this.repository.GetEquipmentUsage(equipmentid, page, laboratoryId);
         }
         catch
         {

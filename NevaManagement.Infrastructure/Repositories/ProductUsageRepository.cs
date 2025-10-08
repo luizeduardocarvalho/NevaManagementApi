@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Infrastructure;
-
-namespace NevaManagement.Infrastructure.Repositories;
+﻿namespace NevaManagement.Infrastructure.Repositories;
 
 public class ProductUsageRepository : BaseRepository<ProductUsage>, IProductUsageRepository
 {

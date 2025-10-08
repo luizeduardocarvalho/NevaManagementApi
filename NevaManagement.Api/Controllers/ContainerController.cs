@@ -16,9 +16,9 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetSimpleContainerDto>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetContainers()
+    public async Task<IActionResult> GetContainers([FromQuery] long laboratoryId)
     {
-        var locations = await this.service.GetContainers();
+        var locations = await this.service.GetContainers(laboratoryId);
         return Ok(locations);
     }
 
@@ -37,9 +37,9 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetSimpleContainerDto>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetChildrenContainers([FromQuery] long containerId)
+    public async Task<IActionResult> GetChildrenContainers([FromQuery] long containerId, [FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetChildrenContainers(containerId);
+        var result = await this.service.GetChildrenContainers(containerId, laboratoryId);
 
         return Ok(result);
     }
@@ -48,9 +48,9 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetDetailedContainerDto>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId)
+    public async Task<IActionResult> GetDetailedContainer([FromQuery] long containerId, [FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetDetailedContainer(containerId);
+        var result = await this.service.GetDetailedContainer(containerId, laboratoryId);
 
         return Ok(result);
     }
@@ -59,9 +59,9 @@ public class ContainerController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<GetContainersByTransferDateDto>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetContainersOrderedByTransferDate([FromQuery] int page)
+    public async Task<IActionResult> GetContainersOrderedByTransferDate([FromQuery] int page, [FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetContainersOrderedByTransferDate(page);
+        var result = await this.service.GetContainersOrderedByTransferDate(page, laboratoryId);
 
         return Ok(result);
     }

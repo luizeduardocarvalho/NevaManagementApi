@@ -15,9 +15,9 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpGet("GetEquipments")]
-    public async Task<IActionResult> GetEquipments()
+    public async Task<IActionResult> GetEquipments([FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetEquipments();
+        var result = await this.service.GetEquipments(laboratoryId);
 
         return Ok(result);
     }
@@ -33,9 +33,9 @@ public class EquipmentController : ControllerBase
     }
 
     [HttpGet("GetDetailedEquipment")]
-    public async Task<IActionResult> GetDetailedEquipment([BindRequired, FromQuery] long id)
+    public async Task<IActionResult> GetDetailedEquipment([BindRequired, FromQuery] long id, [FromQuery] long laboratoryId)
     {
-        var result = await this.service.GetDetailedEquipment(id);
+        var result = await this.service.GetDetailedEquipment(id, laboratoryId);
 
         return Ok(result);
     }

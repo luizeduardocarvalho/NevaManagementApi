@@ -15,9 +15,9 @@ public class LocationController : ControllerBase
     }
 
     [HttpGet("GetLocations")]
-    public async Task<IActionResult> GetLocations()
+    public async Task<IActionResult> GetLocations([FromQuery] long laboratoryId)
     {
-        var locations = await this.service.GetCachedLocations();
+        var locations = await this.service.GetCachedLocations(laboratoryId);
 
         return Ok(locations);
     }
@@ -43,9 +43,9 @@ public class LocationController : ControllerBase
     }
 
     [HttpGet("GetLocationById")]
-    public async Task<IActionResult> GetLocationById([FromQuery] long locationId)
+    public async Task<IActionResult> GetLocationById([FromQuery] long locationId, [FromQuery] long laboratoryId)
     {
-        var location = await this.service.GetLocationById(locationId);
+        var location = await this.service.GetLocationById(locationId, laboratoryId);
 
         return Ok(location);
     }

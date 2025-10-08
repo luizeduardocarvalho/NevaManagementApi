@@ -2,7 +2,7 @@
 
 public interface IResearcherService
 {
-    Task<IList<GetSimpleResearcherDto>> GetResearchers();
+    Task<IList<GetSimpleResearcherDto>> GetResearchers(long laboratoryId);
     Task<GetDetailedResearcherDto> GetByEmailAndPassword(string email, string password);
     Task<bool> Create(CreateResearcherDto researcher);
     Task Save();

@@ -12,6 +12,10 @@ public class Equipment : BaseEntity
 
     public string PropertyNumber { get; set; }
 
+    [ForeignKey("Laboratory_Id")]
+    public Laboratory Laboratory { get; set; }
+    public long LaboratoryId { get; set; }
+
     [ForeignKey("EquipmentId")]
     public IList<EquipmentUsage> EquipmentUsages { get; set; }
 }

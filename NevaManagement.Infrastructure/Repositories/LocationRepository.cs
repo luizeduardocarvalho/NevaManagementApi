@@ -10,10 +10,10 @@ public class LocationRepository : BaseRepository<Location>, ILocationRepository
         this.context = context;
     }
 
-    public async Task<GetDetailedLocationDto> GetByDetailedLocationId(long id)
+    public async Task<GetDetailedLocationDto> GetByDetailedLocationId(long id, long laboratoryId)
     {
         return await this.context.Locations
-            .Where(x => x.Id == id)
+            .Where(x => x.Id == id && x.LaboratoryId == laboratoryId)
             .Include(x => x.SubLocation)
             .Select(x => new GetDetailedLocationDto
             {
@@ -25,9 +25,10 @@ public class LocationRepository : BaseRepository<Location>, ILocationRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<IList<GetLocationDto>> GetLocations()
+    public async Task<IList<GetLocationDto>> GetLocations(long laboratoryId)
     {
         return await this.context.Locations
+            .Where(x => x.LaboratoryId == laboratoryId)
             .Select(x => new GetLocationDto
             {
                 Id = x.Id,

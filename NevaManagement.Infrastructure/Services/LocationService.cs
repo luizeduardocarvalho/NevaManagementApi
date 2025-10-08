@@ -13,14 +13,14 @@ public class LocationService : ILocationService
         this.cache = cache;
     }
 
-    public async Task<IList<GetLocationDto>> GetCachedLocations()
+    public async Task<IList<GetLocationDto>> GetCachedLocations(long laboratoryId)
     {
-        return await this.cache.GetOrCreateAsync("locations", async entry => await GetLocations());
+        return await this.cache.GetOrCreateAsync($"locations_{laboratoryId}", async entry => await GetLocations(laboratoryId));
     }
 
-    private async Task<IList<GetLocationDto>> GetLocations()
+    private async Task<IList<GetLocationDto>> GetLocations(long laboratoryId)
     {
-        return await this.repository.GetLocations();
+        return await this.repository.GetLocations(laboratoryId);
     }
 
     public async Task<bool> AddLocation(AddLocationDto addLocationDto)
@@ -82,11 +82,11 @@ public class LocationService : ILocationService
         return result;
     }
 
-    public async Task<GetDetailedLocationDto> GetLocationById(long locationId)
+    public async Task<GetDetailedLocationDto> GetLocationById(long locationId, long laboratoryId)
     {
         try
         {
-            return await this.repository.GetByDetailedLocationId(locationId);
+            return await this.repository.GetByDetailedLocationId(locationId, laboratoryId);
         }
         catch
         {

@@ -15,4 +15,7 @@ public class UseEquipmentDto
 
     [Required]
     public DateTimeOffset EndDate { get; set; }
+
+    [Required]
+    public long LaboratoryId { get; set; }
 }
