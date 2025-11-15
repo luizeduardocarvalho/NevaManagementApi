@@ -76,3 +76,22 @@
 ## **Invitation**
 - **Send email to researchers
 
+## Database migrations
+
+Use the new migration runner instead of relying on automatic schema changes at
+function startup. Before running the API locally or deploying with Pulumi, apply
+pending migrations with:
+
+```bash
+export DATABASE_URL="postgres://..." # defaults to local docker db when unset
+go run ./cmd/migrate up
+```
+
+Other commands:
+
+- `go run ./cmd/migrate down` – roll back the last migration
+- `go run ./cmd/migrate goto <migration-id>` – migrate up to a specific ID
+- `go run ./cmd/migrate redo` – rerun the most recent migration
+
+The Cloud Function now only opens the database connection; it will not mutate
+the schema automatically.

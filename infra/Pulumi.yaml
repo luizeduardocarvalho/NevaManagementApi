@@ -1,0 +1,3 @@
+name: labflux
+description: LabFlux serverless functions on GCP Cloud Functions  
+runtime: go

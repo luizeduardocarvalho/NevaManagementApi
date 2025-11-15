@@ -1,0 +1,39 @@
+# This file tells gcloud which files to exclude during Cloud Functions deployment
+# However, Pulumi's FileArchive doesn't use this file by default
+
+# Git and development files
+.git/
+.gitignore
+.gcloudignore
+.pulumiignore
+
+# Environment and config
+.env
+.env.*
+
+# Infrastructure code (has its own go.mod)
+infra/
+infra/**
+
+# Documentation
+*.md
+docs/
+CLAUDE.md
+
+# Scripts
+scripts/
+
+# Build artifacts
+main
+cmd/
+cmd_local_only/
+
+# Docker files
+heroku.yml
+docker-compose.yml
+Dockerfile
+
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store

@@ -1,25 +1,21 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
+FROM golang:1.23-alpine
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+# Install required packages for development
+RUN apk add --no-cache git ca-certificates
+
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["NevaManagement.Api/NevaManagement.Api.csproj", "NevaManagement.Api/"]
-COPY ["NevaManagement.Infrastructure/NevaManagement.Infrastructure.csproj", "NevaManagement.Infrastructure/"]
-COPY ["NevaManagement.Domain/NevaManagement.Domain.csproj", "NevaManagement.Domain/"]
-COPY ["NevaManagement.Tests/NevaManagement.Tests.csproj", "NevaManagement.Tests/"]
-RUN dotnet restore "NevaManagement.Api/NevaManagement.Api.csproj"
+# Copy go mod files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
 COPY . .
-WORKDIR "/src/NevaManagement.Api"
-RUN dotnet build "NevaManagement.Api.csproj" -c Release -o /app/build
 
-FROM build AS publish
-RUN dotnet publish "NevaManagement.Api.csproj" -c Release -o /app/publish
+# Build the application
+RUN go build -o labflux-server cmd/main.go
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-CMD ASPNETCORE_URLS=http://*:$PORT dotnet NevaManagement.Api.dll
+EXPOSE 8080
+
+# Run the server
+CMD ["./labflux-server"]

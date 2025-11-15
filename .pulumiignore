@@ -1,0 +1,10 @@
+infra/
+.git/
+.env
+*.log
+main
+deployment.zip
+scripts/
+docs/
+*.md
+.DS_Store

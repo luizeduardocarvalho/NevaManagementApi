@@ -1,0 +1,10 @@
+config:
+  gcp:project: labflux-475521
+  gcp:region: us-central1
+  labflux:clerk-publishable-key: pk_test_YnJpZ2h0LW11dHQtMzIuY2xlcmsuYWNjb3VudHMuZGV2JA
+  labflux:database-url:
+    secure: AAABADMiu60olVl0v125pKJoQ14hrfwVuPZFeQ03C+Ii3ydQLNuuFl61m7pOc+Rgo8k0h0pPdoPqUmOfqhww2D2dbV0BIfdT9jhcKz8pHO2oEL0sMrBmmVmBHJ2u04kwfe/FQzMbxJSsRtAvg7SXS6tLkG+/e2ofY9ZyNqSCUDH7jlEd/fYhxwVq3cl7D4sdXcdnD3hfbYyBzkXRso2MXIcPbJqOdUoqYoYfvYHBfkZSbQo=
+  labflux:clerk-secret-key:
+    secure: AAABAEC0VECPihS650RezJVjuKvyV3bH8hd6WHAx2V1gw/4RgU8cc3B+EDg/M04q1oVpOjCxmID/jSbDpZzAa+/mPthHvDnSFmEjNSSeIQjWqw==
+  labflux:clerk-webhook-secret:
+    secure: AAABADYBC8SanpmzyXm1+lD24obTEIyxnS9LnnEUsiE2ahNI7Cv4TcB4nz89c48onYiBE3tngtHujSQdqI1j/5rQj0N6+Q==
