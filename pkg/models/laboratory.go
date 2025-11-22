@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 	"gorm.io/gorm"
 )
@@ -21,28 +22,45 @@ type Laboratory struct {
 
 type LaboratoryInvitation struct {
 	ID              uint           `gorm:"primarykey" json:"id"`
-	LaboratoryID    uint           `gorm:"not null" json:"laboratory_id"`
+	LaboratoryID    uint           `gorm:"not null;index:idx_lab_email_status" json:"laboratory_id"`
 	Laboratory      Laboratory     `json:"laboratory,omitempty"`
-	Email           string         `gorm:"size:255;not null" json:"email"`
-	InvitationToken string         `gorm:"size:36;unique;not null" json:"invitation_token"`
-	Role            string         `gorm:"size:50;not null" json:"role"`
-	ExpiresAt       time.Time      `gorm:"not null" json:"expires_at"`
-	IsAccepted      bool           `gorm:"default:false" json:"is_accepted"`
-	AcceptedAt      *time.Time     `json:"accepted_at"`
+	Email           string         `gorm:"size:255;not null;index;index:idx_lab_email_status" json:"email"`
+	Role            string         `gorm:"size:50;not null;check:role IN ('coordinator', 'technician', 'student')" json:"role"`
+	FirstName       string         `gorm:"size:100" json:"first_name"`
+	LastName        string         `gorm:"size:100" json:"last_name"`
+	InvitedBy       uint           `gorm:"not null" json:"invited_by"`
+	InvitedByUser   *User          `gorm:"foreignKey:InvitedBy" json:"invited_by_user,omitempty"`
+	InvitationToken string         `gorm:"size:255;unique;not null;index" json:"invitation_token"`
+	Status          string         `gorm:"size:20;not null;default:'pending';check:status IN ('pending', 'accepted', 'expired', 'cancelled');index;index:idx_lab_email_status" json:"status"`
+	ExpiresAt       time.Time      `gorm:"not null;index" json:"expires_at"`
+	AcceptedAt      *time.Time     `json:"accepted_at,omitempty"`
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// BeforeCreate hook to normalize email to lowercase
+func (i *LaboratoryInvitation) BeforeCreate(tx *gorm.DB) error {
+	i.Email = strings.ToLower(i.Email)
+	return nil
+}
+
+// BeforeUpdate hook to normalize email to lowercase
+func (i *LaboratoryInvitation) BeforeUpdate(tx *gorm.DB) error {
+	i.Email = strings.ToLower(i.Email)
+	return nil
+}
+
 type User struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
 	ClerkUserID  string         `gorm:"size:255;unique;not null" json:"clerk_user_id"`
-	Email        string         `gorm:"size:255;unique;not null" json:"email"`
+	Email        string         `gorm:"size:255;unique;not null;index" json:"email"`
 	FirstName    string         `gorm:"size:100" json:"first_name"`
 	LastName     string         `gorm:"size:100" json:"last_name"`
 	LaboratoryID *uint          `json:"laboratory_id"`
 	Laboratory   *Laboratory    `json:"laboratory,omitempty"`
 	Role         string         `gorm:"size:50" json:"role"`
+	Status       string         `gorm:"size:20;default:'active';check:status IN ('pending', 'active', 'suspended');index" json:"status"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`

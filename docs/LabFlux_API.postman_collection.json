@@ -1,0 +1,691 @@
+{
+	"info": {
+		"name": "LabFlux API",
+		"description": "Complete API collection for LabFlux Laboratory Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "labflux"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{clerk_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://us-central1-labflux-475521.cloudfunctions.net/labflux-api",
+			"type": "string"
+		},
+		{
+			"key": "local_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "clerk_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "laboratory_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health & Status",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping API",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/ping",
+							"host": ["{{base_url}}"],
+							"path": ["api", "ping"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Sign Up",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"clerk_token\", jsonData.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@labflux.com\",\n  \"password\": \"SecurePassword123!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "signup"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign In",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"clerk_token\", jsonData.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@labflux.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signin",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "signin"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invitation",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"clerkUserId\": \"user_xxx\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/invite/:token",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "invite", ":token"],
+							"variable": [
+								{
+									"key": "token",
+									"value": "invitation-token-here"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clerk Webhook",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "svix-id",
+								"value": ""
+							},
+							{
+								"key": "svix-timestamp",
+								"value": ""
+							},
+							{
+								"key": "svix-signature",
+								"value": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"user.created\",\n  \"data\": {\n    \"id\": \"user_xxx\",\n    \"email_addresses\": [\n      {\n        \"email_address\": \"user@example.com\"\n      }\n    ],\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/webhooks/clerk",
+							"host": ["{{base_url}}"],
+							"path": ["api", "webhooks", "clerk"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Laboratories",
+			"item": [
+				{
+					"name": "Create Laboratory",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set(\"laboratory_id\", jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Research Lab Alpha\",\n  \"description\": \"Main research laboratory for biology experiments\",\n  \"address\": \"123 Science Ave, Research City\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/laboratories",
+							"host": ["{{base_url}}"],
+							"path": ["api", "laboratories"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Laboratory",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/laboratories/:laboratoryId",
+							"host": ["{{base_url}}"],
+							"path": ["api", "laboratories", ":laboratoryId"],
+							"variable": [
+								{
+									"key": "laboratoryId",
+									"value": "{{laboratory_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Invitations",
+			"item": [
+				{
+					"name": "Create Invitation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"role\": \"researcher\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/laboratories/:laboratoryId/invitations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "laboratories", ":laboratoryId", "invitations"],
+							"variable": [
+								{
+									"key": "laboratoryId",
+									"value": "{{laboratory_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Invitations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/laboratories/:laboratoryId/invitations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "laboratories", ":laboratoryId", "invitations"],
+							"variable": [
+								{
+									"key": "laboratoryId",
+									"value": "{{laboratory_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/GetAll",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "GetAll"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/GetProductById?id=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "GetProductById"],
+							"query": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Detailed Product By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/GetDetailedProductById?id=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "GetDetailedProductById"],
+							"query": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Low In Stock Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/GetLowInStockProducts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "GetLowInStockProducts"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ethanol 99.9%\",\n  \"description\": \"High purity ethanol for laboratory use\",\n  \"quantity\": 10,\n  \"unit\": \"L\",\n  \"minimumQuantity\": 2,\n  \"location\": \"Shelf A3\",\n  \"manufacturer\": \"ChemCorp\",\n  \"catalogNumber\": \"ETH-999\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products/Create",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "Create"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Product",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"\",\n  \"name\": \"Ethanol 99.9% - Updated\",\n  \"description\": \"High purity ethanol for laboratory use - Updated description\",\n  \"minimumQuantity\": 3,\n  \"location\": \"Shelf B1\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products/EditProduct",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "EditProduct"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Quantity to Product",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"\",\n  \"quantity\": 5\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products/AddQuantity",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "AddQuantity"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Use Product",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"\",\n  \"quantity\": 2,\n  \"purpose\": \"Experiment XYZ-123\",\n  \"notes\": \"Used for protein extraction\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products/UseProduct",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "UseProduct"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Equipment",
+			"item": [
+				{
+					"name": "Get All Equipment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/equipment/GetEquipments",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipment", "GetEquipments"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Detailed Equipment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/equipment/GetDetailedEquipment?id=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipment", "GetDetailedEquipment"],
+							"query": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Equipment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Centrifuge Model X1000\",\n  \"description\": \"High-speed centrifuge for sample preparation\",\n  \"location\": \"Lab Room 201\",\n  \"manufacturer\": \"LabEquip Inc\",\n  \"model\": \"X1000\",\n  \"serialNumber\": \"SN-12345\",\n  \"acquisitionDate\": \"2024-01-15T00:00:00Z\",\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/equipment/AddEquipment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipment", "AddEquipment"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Equipment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"\",\n  \"name\": \"Centrifuge Model X1000 - Updated\",\n  \"description\": \"High-speed centrifuge - maintenance completed\",\n  \"location\": \"Lab Room 202\",\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/equipment/EditEquipment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipment", "EditEquipment"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Equipment Usage",
+			"item": [
+				{
+					"name": "Get Equipment Usage Calendar",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/equipmentusage/GetEquipmentUsageCalendar?equipmentId=&startDate=2024-01-01&endDate=2024-12-31",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipmentusage", "GetEquipmentUsageCalendar"],
+							"query": [
+								{
+									"key": "equipmentId",
+									"value": ""
+								},
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Equipment Usage History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/equipmentusage/GetEquipmentUsageHistory?equipmentId=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipmentusage", "GetEquipmentUsageHistory"],
+							"query": [
+								{
+									"key": "equipmentId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Equipment Usage By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/equipmentusage/GetEquipmentUsage?id=",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipmentusage", "GetEquipmentUsage"],
+							"query": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Use Equipment (Schedule/Record)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"equipmentId\": \"\",\n  \"startTime\": \"2024-11-16T09:00:00Z\",\n  \"endTime\": \"2024-11-16T12:00:00Z\",\n  \"purpose\": \"Sample centrifugation for experiment ABC\",\n  \"notes\": \"Processing 20 samples at 5000 RPM\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/equipmentusage/UseEquipment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipmentusage", "UseEquipment"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

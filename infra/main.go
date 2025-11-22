@@ -43,6 +43,7 @@ func main() {
 			"go.mod":        pulumi.NewFileAsset("../go.mod"),
 			"go.sum":        pulumi.NewFileAsset("../go.sum"),
 			"functions":     pulumi.NewFileArchive("../functions"),
+			"docs":          pulumi.NewFileArchive("../docs"),
 			"internal":      pulumi.NewFileArchive("../internal"),
 			"pkg":           pulumi.NewFileArchive("../pkg"),
 			".gcloudignore": pulumi.NewFileAsset("../.gcloudignore"),
@@ -61,6 +62,9 @@ func main() {
 		fn, err := cloudfunctionsv2.NewFunction(ctx, "labflux-api", &cloudfunctionsv2.FunctionArgs{
 			Name:     pulumi.String("labflux-api"),
 			Location: pulumi.String(region),
+			Labels: pulumi.StringMap{
+				"environment": pulumi.String("dev"),
+			},
 
 			BuildConfig: &cloudfunctionsv2.FunctionBuildConfigArgs{
 				Runtime:    pulumi.String("go122"),         // stay on supported Go runtime

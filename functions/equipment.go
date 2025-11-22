@@ -183,10 +183,9 @@ func GetDetailedEquipment(w http.ResponseWriter, r *http.Request) {
 		Description:    equipment.Description,
 		PropertyNumber: equipment.PropertyNumber,
 		Location: LocationResponse{
-			ID:            equipment.Location.ID,
-			Name:          equipment.Location.Name,
-			Description:   equipment.Location.Description,
-			SubLocationID: equipment.Location.SubLocationID,
+			ID:          equipment.Location.ID,
+			Name:        equipment.Location.Name,
+			Description: equipment.Location.Description,
 		},
 		UsageList: usageList,
 	}

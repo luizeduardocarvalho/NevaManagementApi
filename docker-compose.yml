@@ -1,7 +1,9 @@
 version: '3.8'
+
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: labflux-postgres
     environment:
       POSTGRES_DB: neva_local
       POSTGRES_USER: dev
@@ -15,21 +17,47 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - labflux-network
 
-  functions:
-    build: .
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: labflux-api
     ports:
       - "8080:8080"
     environment:
+      # Database - use internal Docker network hostname
       - DATABASE_URL=postgres://dev:dev@postgres:5432/neva_local?sslmode=disable
-      - JWT_SECRET=your-local-jwt-secret-key
-      - PORT=8080
+      - PORT=${PORT:-8080}
+      # Clerk Authentication - loaded from .env file
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - CLERK_WEBHOOK_SECRET=${CLERK_WEBHOOK_SECRET}
+      # Mailjet Email - loaded from .env file
+      - MAILJET_API_KEY=${MAILJET_API_KEY}
+      - MAILJET_API_SECRET=${MAILJET_API_SECRET}
+      - MAILJET_FROM_EMAIL=${MAILJET_FROM_EMAIL:-luiz@labflux.app}
+      - MAILJET_FROM_NAME=${MAILJET_FROM_NAME:-LabFlux}
+      # Frontend URL for invitation links
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5174}
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - .:/app
-    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - labflux-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  labflux-network:
+    driver: bridge
 
 volumes:
   postgres_data:

@@ -8,9 +8,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/database"
+	"github.com/luizeduardocarvalho/labflux-functions/pkg/middleware"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/models"
 )
+
+// Request/Response Types
 
 type CreateProductRequest struct {
 	Name           string  `json:"name" validate:"required"`
@@ -20,51 +24,10 @@ type CreateProductRequest struct {
 	Formula        string  `json:"formula"`
 	Unit           string  `json:"unit" validate:"required"`
 	ExpirationDate string  `json:"expiration_date"`
+	// LaboratoryID is not required in request - it's taken from authenticated user
 }
 
-type GetDetailedProductResponse struct {
-	ID                                  uint    `json:"id"`
-	Name                               string  `json:"name"`
-	Description                        string  `json:"description"`
-	Quantity                           float64 `json:"quantity"`
-	QuantityUsedInTheLastThreeMonths   float64 `json:"quantity_used_in_the_last_three_months"`
-	Formula                            string  `json:"formula"`
-	Unit                               string  `json:"unit"`
-	ExpirationDate                     string  `json:"expiration_date"`
-	Location                           LocationResponse `json:"location"`
-}
-
-type GetProductResponse struct {
-	ID             uint    `json:"id"`
-	Name           string  `json:"name"`
-	Description    string  `json:"description"`
-	Quantity       float64 `json:"quantity"`
-	Formula        string  `json:"formula"`
-	Unit           string  `json:"unit"`
-	ExpirationDate string  `json:"expiration_date"`
-	LocationID     uint    `json:"location_id"`
-}
-
-type LocationResponse struct {
-	ID            uint   `json:"id"`
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	SubLocationID *uint  `json:"sub_location_id"`
-}
-
-type AddQuantityToProductRequest struct {
-	ProductID uint    `json:"product_id" validate:"required"`
-	Quantity  float64 `json:"quantity" validate:"required"`
-}
-
-type UseProductRequest struct {
-	ProductID uint    `json:"product_id" validate:"required"`
-	Quantity  float64 `json:"quantity" validate:"required"`
-	Unit      string  `json:"unit" validate:"required"`
-}
-
-type EditProductRequest struct {
-	ID             uint    `json:"id" validate:"required"`
+type UpdateProductRequest struct {
 	Name           string  `json:"name" validate:"required"`
 	Description    string  `json:"description"`
 	LocationID     uint    `json:"location_id" validate:"required"`
@@ -72,194 +35,313 @@ type EditProductRequest struct {
 	Formula        string  `json:"formula"`
 	Unit           string  `json:"unit" validate:"required"`
 	ExpirationDate string  `json:"expiration_date"`
+	// LaboratoryID is not required in request - it's taken from authenticated user
 }
 
+type AddQuantityRequest struct {
+	Quantity float64 `json:"quantity" validate:"required"`
+}
+
+type UseProductRequest struct {
+	Quantity float64 `json:"quantity" validate:"required"`
+	Unit     string  `json:"unit" validate:"required"`
+}
+
+type LocationResponse struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type ProductResponse struct {
+	ID                               uint             `json:"id"`
+	Name                             string           `json:"name"`
+	Description                      string           `json:"description"`
+	Formula                          string           `json:"formula"`
+	Quantity                         float64          `json:"quantity"`
+	Unit                             string           `json:"unit"`
+	Location                         LocationResponse `json:"location"`
+	LocationID                       uint             `json:"location_id,omitempty"`
+	ExpirationDate                   string           `json:"expiration_date"`
+	QuantityUsedInTheLastThreeMonths float64          `json:"quantity_used_in_the_last_three_months"`
+	LaboratoryID                     uint             `json:"laboratory_id"`
+}
+
+type ProductListResponse struct {
+	Products   []ProductResponse `json:"products"`
+	NextPage   *int              `json:"nextPage"`
+	TotalCount int64             `json:"totalCount"`
+}
+
+// Helper Functions
+
+func getLaboratoryIDFromContext(r *http.Request) (uint, error) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		return 0, fmt.Errorf("authentication required")
+	}
+
+	if claims.LaboratoryID == 0 {
+		return 0, fmt.Errorf("user does not belong to a laboratory")
+	}
+
+	return claims.LaboratoryID, nil
+}
+
+func parseExpirationDate(dateStr string) (time.Time, error) {
+	if dateStr == "" {
+		return time.Time{}, nil
+	}
+
+	// Try ISO 8601 format first
+	t, err := time.Parse("2006-01-02T15:04:05.000Z", dateStr)
+	if err == nil {
+		return t, nil
+	}
+
+	// Try alternative ISO format
+	t, err = time.Parse("2006-01-02T15:04:05Z07:00", dateStr)
+	if err == nil {
+		return t, nil
+	}
+
+	// Try date only format
+	t, err = time.Parse("2006-01-02", dateStr)
+	if err == nil {
+		return t, nil
+	}
+
+	return time.Time{}, fmt.Errorf("invalid date format")
+}
+
+func formatExpirationDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format("2006-01-02T15:04:05.000Z")
+}
+
+func buildProductResponse(product models.Product) ProductResponse {
+	return ProductResponse{
+		ID:          product.ID,
+		Name:        product.Name,
+		Description: product.Description,
+		Formula:     product.Formula,
+		Quantity:    product.Quantity,
+		Unit:        product.Unit,
+		Location: LocationResponse{
+			ID:          product.Location.ID,
+			Name:        product.Location.Name,
+			Description: product.Location.Description,
+		},
+		ExpirationDate:                   formatExpirationDate(product.ExpirationDate),
+		QuantityUsedInTheLastThreeMonths: 0, // TODO: Calculate from usage tracking
+		LaboratoryID:                     product.LaboratoryID,
+	}
+}
+
+func buildDetailedProductResponse(product models.Product) ProductResponse {
+	resp := buildProductResponse(product)
+	resp.LocationID = product.LocationID
+	return resp
+}
+
+// Handlers
+
+// GET /api/products
 func GetAllProducts(w http.ResponseWriter, r *http.Request) {
-	laboratoryID := r.URL.Query().Get("laboratoryId")
-	page := r.URL.Query().Get("page")
-
-	if laboratoryID == "" {
-		http.Error(w, "Laboratory ID is required", http.StatusBadRequest)
-		return
-	}
-
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
+	labID, err := getLaboratoryIDFromContext(r)
 	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
 		return
 	}
 
-	pageNum := 1
-	if page != "" {
-		if p, err := strconv.Atoi(page); err == nil && p > 0 {
-			pageNum = p
+	// Parse query parameters
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("pageSize")
+
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
 		}
+	}
+
+	pageSize := 9
+	if pageSizeStr != "" {
+		if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 {
+			pageSize = ps
+		}
+	}
+
+	db := database.GetDB()
+
+	// Get total count
+	var totalCount int64
+	db.Model(&models.Product{}).Where("laboratory_id = ?", labID).Count(&totalCount)
+
+	// Get products with pagination
+	var products []models.Product
+	offset := (page - 1) * pageSize
+	result := db.Where("laboratory_id = ?", labID).
+		Preload("Location").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&products)
+
+	if result.Error != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to fetch products"})
+		return
+	}
+
+	// Build response
+	productResponses := make([]ProductResponse, 0, len(products))
+	for _, product := range products {
+		productResponses = append(productResponses, buildProductResponse(product))
+	}
+
+	// Calculate next page
+	var nextPage *int
+	if int64(page*pageSize) < totalCount {
+		np := page + 1
+		nextPage = &np
+	}
+
+	response := ProductListResponse{
+		Products:   productResponses,
+		NextPage:   nextPage,
+		TotalCount: totalCount,
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, response)
+}
+
+// GET /api/products/low-stock
+func GetLowStockProducts(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
 	}
 
 	db := database.GetDB()
 	var products []models.Product
 
-	offset := (pageNum - 1) * 10
-	result := db.Where("laboratory_id = ?", labID).
+	// TODO: Implement proper low stock logic based on 3-month average usage
+	// For now, consider products with quantity <= 10 as low stock
+	result := db.Where("laboratory_id = ? AND quantity <= ?", labID, 10).
 		Preload("Location").
-		Offset(offset).
-		Limit(10).
 		Find(&products)
 
 	if result.Error != nil {
-		http.Error(w, "Failed to fetch products", http.StatusInternalServerError)
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to fetch low stock products"})
 		return
 	}
 
-	var response []GetProductResponse
+	productResponses := make([]ProductResponse, 0, len(products))
 	for _, product := range products {
-		response = append(response, GetProductResponse{
-			ID:             product.ID,
-			Name:           product.Name,
-			Description:    product.Description,
-			Quantity:       product.Quantity,
-			Formula:        product.Formula,
-			Unit:           product.Unit,
-			ExpirationDate: product.ExpirationDate.Format("2006-01-02T15:04:05Z07:00"),
-			LocationID:     product.LocationID,
-		})
+		productResponses = append(productResponses, buildProductResponse(product))
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, productResponses)
 }
 
-func GetDetailedProductByID(w http.ResponseWriter, r *http.Request) {
-	productID := r.URL.Query().Get("id")
-	laboratoryID := r.URL.Query().Get("laboratoryId")
-
-	if productID == "" || laboratoryID == "" {
-		http.Error(w, "Product ID and Laboratory ID are required", http.StatusBadRequest)
+// GET /api/products/expired
+func GetExpiredProducts(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
 		return
 	}
 
-	prodID, err := strconv.ParseUint(productID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
+	db := database.GetDB()
+	var products []models.Product
+
+	result := db.Where("laboratory_id = ? AND expiration_date < ? AND expiration_date IS NOT NULL", labID, time.Now()).
+		Preload("Location").
+		Find(&products)
+
+	if result.Error != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to fetch expired products"})
 		return
 	}
 
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
+	productResponses := make([]ProductResponse, 0, len(products))
+	for _, product := range products {
+		productResponses = append(productResponses, buildProductResponse(product))
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, productResponses)
+}
+
+// GET /api/products/:id
+func GetProductByID(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
 	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
+	// Get product ID from URL path
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
 		return
 	}
 
 	db := database.GetDB()
 	var product models.Product
 
-	result := db.Where("id = ? AND laboratory_id = ?", prodID, labID).
+	result := db.Where("id = ? AND laboratory_id = ?", productID, labID).
 		Preload("Location").
 		First(&product)
 
 	if result.Error != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
 		return
 	}
 
-	response := GetDetailedProductResponse{
-		ID:                                product.ID,
-		Name:                             product.Name,
-		Description:                      product.Description,
-		Quantity:                         product.Quantity,
-		QuantityUsedInTheLastThreeMonths: 0, // TODO: Calculate from usage data
-		Formula:                          product.Formula,
-		Unit:                             product.Unit,
-		ExpirationDate:                   product.ExpirationDate.Format("2006-01-02T15:04:05Z07:00"),
-		Location: LocationResponse{
-			ID:            product.Location.ID,
-			Name:          product.Location.Name,
-			Description:   product.Location.Description,
-			SubLocationID: product.Location.SubLocationID,
-		},
-	}
+	response := buildDetailedProductResponse(product)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, response)
 }
 
-func GetProductByID(w http.ResponseWriter, r *http.Request) {
-	productID := r.URL.Query().Get("id")
-	laboratoryID := r.URL.Query().Get("laboratoryId")
-
-	if productID == "" || laboratoryID == "" {
-		http.Error(w, "Product ID and Laboratory ID are required", http.StatusBadRequest)
-		return
-	}
-
-	prodID, err := strconv.ParseUint(productID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid product ID", http.StatusBadRequest)
-		return
-	}
-
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
-		return
-	}
-
-	db := database.GetDB()
-	var product models.Product
-
-	result := db.Where("id = ? AND laboratory_id = ?", prodID, labID).First(&product)
-
-	if result.Error != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
-		return
-	}
-
-	response := GetProductResponse{
-		ID:             product.ID,
-		Name:           product.Name,
-		Description:    product.Description,
-		Quantity:       product.Quantity,
-		Formula:        product.Formula,
-		Unit:           product.Unit,
-		ExpirationDate: product.ExpirationDate.Format("2006-01-02T15:04:05Z07:00"),
-		LocationID:     product.LocationID,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
-
+// POST /api/products
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
 	var req CreateProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid request body"})
 		return
 	}
 
-	// Get laboratory ID from JWT claims (middleware should have set this)
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
+	// Parse expiration date
+	expirationDate, err := parseExpirationDate(req.ExpirationDate)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid expiration date format"})
 		return
-	}
-
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
-		return
-	}
-
-	var expirationDate time.Time
-	if req.ExpirationDate != "" {
-		var err error
-		expirationDate, err = time.Parse("2006-01-02T15:04:05Z07:00", req.ExpirationDate)
-		if err != nil {
-			expirationDate, err = time.Parse("2006-01-02", req.ExpirationDate)
-			if err != nil {
-				http.Error(w, "Invalid expiration date format", http.StatusBadRequest)
-				return
-			}
-		}
 	}
 
 	product := models.Product{
@@ -277,141 +359,58 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	result := db.Create(&product)
 
 	if result.Error != nil {
-		http.Error(w, "Failed to create product", http.StatusInternalServerError)
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to create product"})
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "Successfully created %s.", req.Name)
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, map[string]string{"message": "Product created successfully"})
 }
 
-func AddQuantityToProduct(w http.ResponseWriter, r *http.Request) {
-	var req AddQuantityToProductRequest
+// PUT /api/products/:id
+func UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
+	// Get product ID from URL path
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
+		return
+	}
+
+	var req UpdateProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid request body"})
 		return
 	}
 
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
-		return
-	}
-
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
+	expirationDate, err := parseExpirationDate(req.ExpirationDate)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid expiration date format"})
 		return
 	}
 
 	db := database.GetDB()
 	var product models.Product
 
-	result := db.Where("id = ? AND laboratory_id = ?", req.ProductID, labID).First(&product)
+	result := db.Where("id = ? AND laboratory_id = ?", productID, labID).First(&product)
 	if result.Error != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
 		return
 	}
 
-	product.Quantity += req.Quantity
-	result = db.Save(&product)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to update product quantity", http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintf(w, "Successfully added %.2f to product.", req.Quantity)
-}
-
-func UseProduct(w http.ResponseWriter, r *http.Request) {
-	var req UseProductRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
-		return
-	}
-
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
-		return
-	}
-
-	db := database.GetDB()
-	var product models.Product
-
-	result := db.Where("id = ? AND laboratory_id = ?", req.ProductID, labID).First(&product)
-	if result.Error != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
-		return
-	}
-
-	if product.Quantity < req.Quantity {
-		http.Error(w, "Insufficient quantity available", http.StatusBadRequest)
-		return
-	}
-
-	product.Quantity -= req.Quantity
-	result = db.Save(&product)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to update product quantity", http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintf(w, "Successfully used %.2f%s.", req.Quantity, req.Unit)
-}
-
-func EditProduct(w http.ResponseWriter, r *http.Request) {
-	var req EditProductRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
-		return
-	}
-
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
-		return
-	}
-
-	var expirationDate time.Time
-	if req.ExpirationDate != "" {
-		var err error
-		expirationDate, err = time.Parse("2006-01-02T15:04:05Z07:00", req.ExpirationDate)
-		if err != nil {
-			expirationDate, err = time.Parse("2006-01-02", req.ExpirationDate)
-			if err != nil {
-				http.Error(w, "Invalid expiration date format", http.StatusBadRequest)
-				return
-			}
-		}
-	}
-
-	db := database.GetDB()
-	var product models.Product
-
-	result := db.Where("id = ? AND laboratory_id = ?", req.ID, labID).First(&product)
-	if result.Error != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
-		return
-	}
-
+	// Update fields
 	product.Name = req.Name
 	product.Description = req.Description
 	product.LocationID = req.LocationID
@@ -422,67 +421,182 @@ func EditProduct(w http.ResponseWriter, r *http.Request) {
 
 	result = db.Save(&product)
 	if result.Error != nil {
-		http.Error(w, "Failed to update product", http.StatusInternalServerError)
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to update product"})
 		return
 	}
 
-	fmt.Fprintf(w, "Successfully edited %s.", req.Name)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]string{"message": "Product updated successfully"})
 }
 
-func GetLowInStockProducts(w http.ResponseWriter, r *http.Request) {
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
+// POST /api/products/:id/add-quantity
+func AddQuantityToProduct(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
 		return
 	}
 
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
+	// Get product ID from URL path
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
+		return
+	}
+
+	var req AddQuantityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid request body"})
+		return
+	}
+
+	if req.Quantity <= 0 {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Quantity must be positive"})
 		return
 	}
 
 	db := database.GetDB()
-	var products []models.Product
+	var product models.Product
 
-	// Consider products with quantity <= 10 as low in stock
-	result := db.Where("laboratory_id = ? AND quantity <= ?", labID, 10).
-		Preload("Location").
-		Find(&products)
-
+	result := db.Where("id = ? AND laboratory_id = ?", productID, labID).First(&product)
 	if result.Error != nil {
-		http.Error(w, "Failed to fetch low stock products", http.StatusInternalServerError)
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
 		return
 	}
 
-	var response []GetProductResponse
-	for _, product := range products {
-		response = append(response, GetProductResponse{
-			ID:             product.ID,
-			Name:           product.Name,
-			Description:    product.Description,
-			Quantity:       product.Quantity,
-			Formula:        product.Formula,
-			Unit:           product.Unit,
-			ExpirationDate: product.ExpirationDate.Format("2006-01-02T15:04:05Z07:00"),
-			LocationID:     product.LocationID,
-		})
+	product.Quantity += req.Quantity
+	result = db.Save(&product)
+
+	if result.Error != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to update product quantity"})
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]string{"message": "Quantity added successfully"})
 }
 
+// POST /api/products/:id/use
+func UseProduct(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
+	// Get product ID from URL path
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
+		return
+	}
+
+	var req UseProductRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid request body"})
+		return
+	}
+
+	if req.Quantity <= 0 {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Quantity must be positive"})
+		return
+	}
+
+	db := database.GetDB()
+	var product models.Product
+
+	result := db.Where("id = ? AND laboratory_id = ?", productID, labID).First(&product)
+	if result.Error != nil {
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
+		return
+	}
+
+	if product.Quantity < req.Quantity {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Insufficient quantity available"})
+		return
+	}
+
+	product.Quantity -= req.Quantity
+
+	// TODO: Track usage for quantity_used_in_the_last_three_months calculation
+
+	result = db.Save(&product)
+	if result.Error != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to update product quantity"})
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]string{"message": "Product usage recorded successfully"})
+}
+
+// DELETE /api/products/:id
+func DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
+	// Get product ID from URL path
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
+		return
+	}
+
+	db := database.GetDB()
+	var product models.Product
+
+	result := db.Where("id = ? AND laboratory_id = ?", productID, labID).First(&product)
+	if result.Error != nil {
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
+		return
+	}
+
+	// Soft delete
+	result = db.Delete(&product)
+	if result.Error != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to delete product"})
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]string{"message": "Product deleted successfully"})
+}
+
+// RegisterProductRoutes registers all product routes
 func RegisterProductRoutes(r chi.Router) {
 	r.Route("/products", func(r chi.Router) {
-		r.Get("/GetAll", GetAllProducts)
-		r.Get("/GetDetailedProductById", GetDetailedProductByID)
-		r.Get("/GetProductById", GetProductByID)
-		r.Post("/Create", CreateProduct)
-		r.Patch("/AddQuantity", AddQuantityToProduct)
-		r.Patch("/UseProduct", UseProduct)
-		r.Patch("/EditProduct", EditProduct)
-		r.Get("/GetLowInStockProducts", GetLowInStockProducts)
+		r.Get("/", GetAllProducts)
+		r.Get("/low-stock", GetLowStockProducts)
+		r.Get("/expired", GetExpiredProducts)
+		r.Get("/{id}", GetProductByID)
+		r.Post("/", CreateProduct)
+		r.Put("/{id}", UpdateProduct)
+		r.Post("/{id}/add-quantity", AddQuantityToProduct)
+		r.Post("/{id}/use", UseProduct)
+		r.Delete("/{id}", DeleteProduct)
 	})
 }

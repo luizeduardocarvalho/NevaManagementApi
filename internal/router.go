@@ -48,12 +48,20 @@ func SetupRouter() *chi.Mux {
 			r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 				render.JSON(w, r, map[string]string{"message": "pong"})
 			})
-			
+
+			// Authentication endpoints
+			r.Post("/auth/signup", functions.SignUp)
+			r.Post("/auth/signin", functions.SignIn)
+			r.Post("/auth/login", functions.SignIn) // Alias for signin
+
 			// Clerk webhook
 			r.Post("/webhooks/clerk", functions.ClerkWebhookHandler)
-			
+
 			// Invitation acceptance (requires Clerk user ID)
 			r.Post("/auth/invite/{token}", functions.AcceptInvitation)
+
+			// Public invitation endpoints
+			r.Get("/invitations/token/{token}", functions.GetInvitationByToken)
 		})
 
 		// Protected routes (auth required)
@@ -66,11 +74,14 @@ func SetupRouter() *chi.Mux {
 			// Laboratory management
 			r.Post("/laboratories", functions.CreateLaboratory)
 			r.Get("/laboratories/{laboratoryId}", functions.GetLaboratory)
-			
+
 			// Invitation management
 			r.Post("/laboratories/{laboratoryId}/invitations", functions.CreateInvitation)
 			r.Get("/laboratories/{laboratoryId}/invitations", functions.GetInvitations)
-			
+			r.Post("/invitations/{id}/resend", functions.ResendInvitation)
+			r.Post("/invitations/{id}/cancel", functions.CancelInvitation)
+			r.Delete("/invitations/{id}", functions.DeleteInvitation)
+
 			// Product management
 			functions.RegisterProductRoutes(r)
 			
