@@ -82,12 +82,15 @@ func SetupRouter() *chi.Mux {
 			r.Post("/invitations/{id}/cancel", functions.CancelInvitation)
 			r.Delete("/invitations/{id}", functions.DeleteInvitation)
 
+			// Location management
+			functions.RegisterLocationRoutes(r)
+
 			// Product management
 			functions.RegisterProductRoutes(r)
-			
+
 			// Equipment management
 			functions.RegisterEquipmentRoutes(r)
-			
+
 			// Equipment usage management
 			functions.RegisterEquipmentUsageRoutes(r)
 		})

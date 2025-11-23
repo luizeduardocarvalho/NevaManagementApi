@@ -91,9 +91,27 @@ type Product struct {
 	ExpirationDate time.Time      `json:"expiration_date"`
 	LaboratoryID   uint           `gorm:"not null" json:"laboratory_id"`
 	Laboratory     Laboratory     `json:"laboratory,omitempty"`
+	ProductUsages  []ProductUsage `json:"product_usages,omitempty"`
 	CreatedAt      time.Time      `json:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at"`
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type ProductUsage struct {
+	ID           uint           `gorm:"primarykey" json:"id"`
+	ProductID    uint           `gorm:"not null;index" json:"product_id"`
+	Product      Product        `json:"product,omitempty"`
+	UserID       uint           `gorm:"not null" json:"user_id"`
+	User         User           `json:"user,omitempty"`
+	QuantityUsed float64        `gorm:"not null" json:"quantity_used"`
+	Unit         string         `gorm:"size:50;not null" json:"unit"`
+	UsedAt       time.Time      `gorm:"not null;index" json:"used_at"`
+	Notes        string         `json:"notes"`
+	LaboratoryID uint           `gorm:"not null;index" json:"laboratory_id"`
+	Laboratory   Laboratory     `json:"laboratory,omitempty"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type Equipment struct {

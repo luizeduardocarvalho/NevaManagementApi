@@ -12,6 +12,7 @@ import (
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/database"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/middleware"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/models"
+	"gorm.io/gorm"
 )
 
 // Request/Response Types
@@ -45,6 +46,7 @@ type AddQuantityRequest struct {
 type UseProductRequest struct {
 	Quantity float64 `json:"quantity" validate:"required"`
 	Unit     string  `json:"unit" validate:"required"`
+	Notes    string  `json:"notes"`
 }
 
 type LocationResponse struct {
@@ -122,6 +124,18 @@ func formatExpirationDate(t time.Time) string {
 }
 
 func buildProductResponse(product models.Product) ProductResponse {
+	// Calculate 3-month usage
+	threeMonthsAgo := time.Now().AddDate(0, -3, 0)
+	var threeMonthUsage struct {
+		TotalUsed float64
+	}
+
+	db := database.GetDB()
+	db.Model(&models.ProductUsage{}).
+		Select("COALESCE(SUM(quantity_used), 0) as total_used").
+		Where("product_id = ? AND used_at >= ?", product.ID, threeMonthsAgo).
+		Scan(&threeMonthUsage)
+
 	return ProductResponse{
 		ID:          product.ID,
 		Name:        product.Name,
@@ -135,7 +149,7 @@ func buildProductResponse(product models.Product) ProductResponse {
 			Description: product.Location.Description,
 		},
 		ExpirationDate:                   formatExpirationDate(product.ExpirationDate),
-		QuantityUsedInTheLastThreeMonths: 0, // TODO: Calculate from usage tracking
+		QuantityUsedInTheLastThreeMonths: threeMonthUsage.TotalUsed,
 		LaboratoryID:                     product.LaboratoryID,
 	}
 }
@@ -486,10 +500,17 @@ func AddQuantityToProduct(w http.ResponseWriter, r *http.Request) {
 
 // POST /api/products/:id/use
 func UseProduct(w http.ResponseWriter, r *http.Request) {
-	labID, err := getLaboratoryIDFromContext(r)
-	if err != nil {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
 		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, map[string]string{"error": err.Error()})
+		render.JSON(w, r, map[string]string{"error": "authentication required"})
+		return
+	}
+
+	labID := claims.LaboratoryID
+	if labID == 0 {
+		render.Status(r, http.StatusForbidden)
+		render.JSON(w, r, map[string]string{"error": "user does not belong to a laboratory"})
 		return
 	}
 
@@ -531,14 +552,35 @@ func UseProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product.Quantity -= req.Quantity
+	// Use transaction to ensure atomicity
+	err = db.Transaction(func(tx *gorm.DB) error {
+		// Deduct quantity from product
+		product.Quantity -= req.Quantity
+		if err := tx.Save(&product).Error; err != nil {
+			return err
+		}
 
-	// TODO: Track usage for quantity_used_in_the_last_three_months calculation
+		// Track usage history
+		usage := models.ProductUsage{
+			ProductID:    uint(productID),
+			UserID:       claims.UserID,
+			QuantityUsed: req.Quantity,
+			Unit:         req.Unit,
+			UsedAt:       time.Now(),
+			Notes:        req.Notes,
+			LaboratoryID: labID,
+		}
 
-	result = db.Save(&product)
-	if result.Error != nil {
+		if err := tx.Create(&usage).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, map[string]string{"error": "Failed to update product quantity"})
+		render.JSON(w, r, map[string]string{"error": "Failed to record product usage"})
 		return
 	}
 
@@ -586,6 +628,135 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, map[string]string{"message": "Product deleted successfully"})
 }
 
+// GET /api/products/:id/usage-history
+func GetProductUsageHistory(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
+		return
+	}
+
+	db := database.GetDB()
+
+	// Verify product exists and belongs to user's laboratory
+	var product models.Product
+	if err := db.Where("id = ? AND laboratory_id = ?", productID, labID).First(&product).Error; err != nil {
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
+		return
+	}
+
+	// Get usage history
+	var usages []models.ProductUsage
+	if err := db.Where("product_id = ? AND laboratory_id = ?", productID, labID).
+		Preload("User").
+		Order("used_at DESC").
+		Find(&usages).Error; err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{"error": "Failed to fetch usage history"})
+		return
+	}
+
+	render.JSON(w, r, usages)
+}
+
+// GET /api/products/:id/usage-stats
+func GetProductUsageStats(w http.ResponseWriter, r *http.Request) {
+	labID, err := getLaboratoryIDFromContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{"error": err.Error()})
+		return
+	}
+
+	productIDStr := chi.URLParam(r, "id")
+	productID, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{"error": "Invalid product ID"})
+		return
+	}
+
+	db := database.GetDB()
+
+	// Verify product exists and belongs to user's laboratory
+	var product models.Product
+	if err := db.Where("id = ? AND laboratory_id = ?", productID, labID).First(&product).Error; err != nil {
+		render.Status(r, http.StatusNotFound)
+		render.JSON(w, r, map[string]string{"error": "Product not found"})
+		return
+	}
+
+	// Calculate 3-month usage
+	threeMonthsAgo := time.Now().AddDate(0, -3, 0)
+	var threeMonthUsage struct {
+		TotalUsed float64
+	}
+
+	db.Model(&models.ProductUsage{}).
+		Select("COALESCE(SUM(quantity_used), 0) as total_used").
+		Where("product_id = ? AND laboratory_id = ? AND used_at >= ?", productID, labID, threeMonthsAgo).
+		Scan(&threeMonthUsage)
+
+	// Calculate 30-day usage
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	var thirtyDayUsage struct {
+		TotalUsed float64
+	}
+
+	db.Model(&models.ProductUsage{}).
+		Select("COALESCE(SUM(quantity_used), 0) as total_used").
+		Where("product_id = ? AND laboratory_id = ? AND used_at >= ?", productID, labID, thirtyDaysAgo).
+		Scan(&thirtyDayUsage)
+
+	// Calculate total usage ever
+	var totalUsage struct {
+		TotalUsed float64
+	}
+
+	db.Model(&models.ProductUsage{}).
+		Select("COALESCE(SUM(quantity_used), 0) as total_used").
+		Where("product_id = ? AND laboratory_id = ?", productID, labID).
+		Scan(&totalUsage)
+
+	stats := map[string]interface{}{
+		"product_id":                productID,
+		"product_name":              product.Name,
+		"current_quantity":          product.Quantity,
+		"unit":                      product.Unit,
+		"usage_last_30_days":        thirtyDayUsage.TotalUsed,
+		"usage_last_3_months":       threeMonthUsage.TotalUsed,
+		"total_usage_all_time":      totalUsage.TotalUsed,
+		"average_monthly_usage":     threeMonthUsage.TotalUsed / 3,
+		"estimated_days_remaining":  calculateEstimatedDaysRemaining(product.Quantity, threeMonthUsage.TotalUsed),
+	}
+
+	render.JSON(w, r, stats)
+}
+
+func calculateEstimatedDaysRemaining(currentQty float64, threeMonthUsage float64) int {
+	if threeMonthUsage <= 0 {
+		return -1 // Unknown (no usage data)
+	}
+
+	dailyAverage := threeMonthUsage / 90 // 3 months ≈ 90 days
+	if dailyAverage <= 0 {
+		return -1
+	}
+
+	daysRemaining := currentQty / dailyAverage
+	return int(daysRemaining)
+}
+
 // RegisterProductRoutes registers all product routes
 func RegisterProductRoutes(r chi.Router) {
 	r.Route("/products", func(r chi.Router) {
@@ -593,6 +764,8 @@ func RegisterProductRoutes(r chi.Router) {
 		r.Get("/low-stock", GetLowStockProducts)
 		r.Get("/expired", GetExpiredProducts)
 		r.Get("/{id}", GetProductByID)
+		r.Get("/{id}/usage-history", GetProductUsageHistory)
+		r.Get("/{id}/usage-stats", GetProductUsageStats)
 		r.Post("/", CreateProduct)
 		r.Put("/{id}", UpdateProduct)
 		r.Post("/{id}/add-quantity", AddQuantityToProduct)
