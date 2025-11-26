@@ -26,7 +26,7 @@ type CreateLaboratoryRequest struct {
 
 type CreateInvitationRequest struct {
 	Email     string `json:"email" validate:"required,email"`
-	Role      string `json:"role" validate:"required,oneof=coordinator technician student"`
+	Role      string `json:"role" validate:"required,oneof=lab-coordinator technician student"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 }
@@ -87,39 +87,65 @@ func CreateLaboratory(w http.ResponseWriter, r *http.Request) {
 
 	db := database.GetDB()
 
-	// Check if user already has a laboratory
+	// Check if user already has a laboratory or organization
 	var user models.User
 	if err := db.First(&user, claims.UserID).Error; err != nil {
 		middleware.ErrorResponse(w, r, http.StatusNotFound, "User not found")
 		return
 	}
 
-	if user.LaboratoryID != nil {
-		middleware.ErrorResponse(w, r, http.StatusBadRequest, "User already belongs to a laboratory")
+	if user.LaboratoryID != nil || user.OrganizationID != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "User already belongs to a laboratory or organization")
 		return
 	}
 
-	// Create laboratory
-	laboratory := models.Laboratory{
-		Name:        req.Name,
-		Description: req.Description,
-		Address:     req.Address,
-	}
+	// Create organization and laboratory in transaction
+	var createdLab models.Laboratory
+	err := db.Transaction(func(tx *gorm.DB) error {
+		// Create organization
+		org := models.Organization{
+			Name:        req.Name + " Organization",
+			Description: "Auto-created organization for " + req.Name,
+		}
+		if err := tx.Create(&org).Error; err != nil {
+			return err
+		}
 
-	if err := db.Create(&laboratory).Error; err != nil {
+		// Create laboratory
+		laboratory := models.Laboratory{
+			OrganizationID: org.ID,
+			Name:           req.Name,
+			Description:    req.Description,
+			Address:        req.Address,
+		}
+		if err := tx.Create(&laboratory).Error; err != nil {
+			return err
+		}
+
+		createdLab = laboratory
+
+		// Assign user to laboratory as lab-coordinator
+		user.LaboratoryID = &laboratory.ID
+		user.Role = "lab-coordinator"
+		if err := tx.Save(&user).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "Failed to create laboratory")
 		return
 	}
 
-	// Assign user to laboratory as admin
-	user.LaboratoryID = &laboratory.ID
-	user.Role = "Admin"
-	if err := db.Save(&user).Error; err != nil {
-		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "Failed to assign user to laboratory")
+	// Fetch created laboratory with organization
+	if err := db.Preload("Organization").First(&createdLab, createdLab.ID).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "Failed to fetch laboratory")
 		return
 	}
 
-	render.JSON(w, r, laboratory)
+	render.JSON(w, r, createdLab)
 }
 
 // GetLaboratory retrieves laboratory information
@@ -202,9 +228,9 @@ func CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate role
-	validRoles := map[string]bool{"coordinator": true, "technician": true, "student": true}
+	validRoles := map[string]bool{"lab-coordinator": true, "technician": true, "student": true}
 	if !validRoles[req.Role] {
-		middleware.ErrorResponse(w, r, http.StatusBadRequest, "Invalid role. Must be one of: coordinator, technician, student")
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "Invalid role. Must be one of: lab-coordinator, technician, student")
 		return
 	}
 
@@ -215,8 +241,8 @@ func CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify user is coordinator of this laboratory
-	if claims.LaboratoryID != uint(id) || (claims.Role != "coordinator" && claims.Role != "Admin") {
-		middleware.ErrorResponse(w, r, http.StatusForbidden, "Coordinator access required")
+	if claims.LaboratoryID != uint(id) || claims.Role != "lab-coordinator" {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "Lab coordinator access required")
 		return
 	}
 
@@ -347,8 +373,8 @@ func GetInvitations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify user is coordinator of this laboratory
-	if claims.LaboratoryID != uint(id) || (claims.Role != "coordinator" && claims.Role != "Admin") {
-		middleware.ErrorResponse(w, r, http.StatusForbidden, "Coordinator access required")
+	if claims.LaboratoryID != uint(id) || claims.Role != "lab-coordinator" {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "Lab coordinator access required")
 		return
 	}
 
@@ -522,8 +548,8 @@ func ResendInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify user is coordinator of the laboratory
-	if claims.LaboratoryID != invitation.LaboratoryID || (claims.Role != "coordinator" && claims.Role != "Admin") {
-		middleware.ErrorResponse(w, r, http.StatusForbidden, "Coordinator access required")
+	if claims.LaboratoryID != invitation.LaboratoryID || (claims.Role != "lab-coordinator" && claims.Role != "Admin") {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "Lab coordinator access required")
 		return
 	}
 
@@ -622,8 +648,8 @@ func CancelInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify user is coordinator of the laboratory
-	if claims.LaboratoryID != invitation.LaboratoryID || (claims.Role != "coordinator" && claims.Role != "Admin") {
-		middleware.ErrorResponse(w, r, http.StatusForbidden, "Coordinator access required")
+	if claims.LaboratoryID != invitation.LaboratoryID || (claims.Role != "lab-coordinator" && claims.Role != "Admin") {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "Lab coordinator access required")
 		return
 	}
 
@@ -693,8 +719,8 @@ func DeleteInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify user is coordinator of the laboratory
-	if claims.LaboratoryID != invitation.LaboratoryID || (claims.Role != "coordinator" && claims.Role != "Admin") {
-		middleware.ErrorResponse(w, r, http.StatusForbidden, "Coordinator access required")
+	if claims.LaboratoryID != invitation.LaboratoryID || (claims.Role != "lab-coordinator" && claims.Role != "Admin") {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "Lab coordinator access required")
 		return
 	}
 

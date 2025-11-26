@@ -7,147 +7,166 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/database"
+	"github.com/luizeduardocarvalho/labflux-functions/pkg/middleware"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/models"
 )
 
 type UseEquipmentRequest struct {
-	EquipmentID  uint   `json:"equipment_id" validate:"required"`
-	ResearcherID uint   `json:"researcher_id" validate:"required"`
-	Description  string `json:"description"`
-	StartDate    string `json:"start_date" validate:"required"`
-	EndDate      string `json:"end_date" validate:"required"`
+	UserID      uint   `json:"user_id" validate:"required"`
+	Description string `json:"description"`
+	StartDate   string `json:"start_date" validate:"required"`
+	EndDate     string `json:"end_date" validate:"required"`
+}
+
+type CheckOverlapRequest struct {
+	StartDate string `json:"start_date" validate:"required"`
+	EndDate   string `json:"end_date" validate:"required"`
 }
 
 type EquipmentUsageCalendarResponse struct {
-	ID             uint   `json:"id"`
-	EquipmentID    uint   `json:"equipment_id"`
-	ResearcherID   uint   `json:"researcher_id"`
-	ResearcherName string `json:"researcher_name"`
-	Description    string `json:"description"`
-	StartDate      string `json:"start_date"`
-	EndDate        string `json:"end_date"`
+	ID        uint   `json:"id"`
+	EquipmentID uint `json:"equipment_id"`
+	UserID    uint   `json:"user_id"`
+	UserName  string `json:"user_name"`
+	Description string `json:"description"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
 }
 
 func GetEquipmentUsageCalendar(w http.ResponseWriter, r *http.Request) {
-	equipmentID := r.URL.Query().Get("id")
-	laboratoryID := r.URL.Query().Get("laboratoryId")
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
 
-	if equipmentID == "" || laboratoryID == "" {
-		http.Error(w, "Equipment ID and Laboratory ID are required", http.StatusBadRequest)
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
 		return
 	}
 
 	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
 	if err != nil {
-		http.Error(w, "Invalid equipment ID", http.StatusBadRequest)
-		return
-	}
-
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
 		return
 	}
 
 	db := database.GetDB()
+
+	// Verify equipment belongs to user's laboratory
+	var equipment models.Equipment
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
+		return
+	}
+
 	var usages []models.EquipmentUsage
-
-	result := db.Where("equipment_id = ? AND laboratory_id = ?", eqID, labID).
-		Preload("Researcher").
-		Find(&usages)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to fetch equipment usage calendar", http.StatusInternalServerError)
+	if err := db.Where("equipment_id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).
+		Preload("User").
+		Order("start_date").
+		Find(&usages).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to fetch equipment usage calendar")
 		return
 	}
 
 	var response []EquipmentUsageCalendarResponse
 	for _, usage := range usages {
+		userName := usage.User.FirstName + " " + usage.User.LastName
 		response = append(response, EquipmentUsageCalendarResponse{
-			ID:             usage.ID,
-			EquipmentID:    usage.EquipmentID,
-			ResearcherID:   usage.ResearcherID,
-			ResearcherName: usage.Researcher.Name,
-			Description:    usage.Description,
-			StartDate:      usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
-			EndDate:        usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
+			ID:          usage.ID,
+			EquipmentID: usage.EquipmentID,
+			UserID:      usage.UserID,
+			UserName:    userName,
+			Description: usage.Description,
+			StartDate:   usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
+			EndDate:     usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.JSON(w, r, response)
 }
 
 func GetEquipmentUsageHistory(w http.ResponseWriter, r *http.Request) {
-	equipmentID := r.URL.Query().Get("id")
-	laboratoryID := r.URL.Query().Get("laboratoryId")
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
 
-	if equipmentID == "" || laboratoryID == "" {
-		http.Error(w, "Equipment ID and Laboratory ID are required", http.StatusBadRequest)
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
 		return
 	}
 
 	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
 	if err != nil {
-		http.Error(w, "Invalid equipment ID", http.StatusBadRequest)
-		return
-	}
-
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
 		return
 	}
 
 	db := database.GetDB()
+
+	// Verify equipment belongs to user's laboratory
+	var equipment models.Equipment
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
+		return
+	}
+
 	var usages []models.EquipmentUsage
 
 	// Get past usage (end_date < now), ordered by end_date desc
-	result := db.Where("equipment_id = ? AND laboratory_id = ? AND end_date < ?", eqID, labID, time.Now()).
-		Preload("Researcher").
+	if err := db.Where("equipment_id = ? AND laboratory_id = ? AND end_date < ?", eqID, claims.LaboratoryID, time.Now()).
+		Preload("User").
 		Order("end_date desc").
-		Find(&usages)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to fetch equipment usage history", http.StatusInternalServerError)
+		Find(&usages).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to fetch equipment usage history")
 		return
 	}
 
 	var response []EquipmentUsageCalendarResponse
 	for _, usage := range usages {
+		userName := usage.User.FirstName + " " + usage.User.LastName
 		response = append(response, EquipmentUsageCalendarResponse{
-			ID:             usage.ID,
-			EquipmentID:    usage.EquipmentID,
-			ResearcherID:   usage.ResearcherID,
-			ResearcherName: usage.Researcher.Name,
-			Description:    usage.Description,
-			StartDate:      usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
-			EndDate:        usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
+			ID:          usage.ID,
+			EquipmentID: usage.EquipmentID,
+			UserID:      usage.UserID,
+			UserName:    userName,
+			Description: usage.Description,
+			StartDate:   usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
+			EndDate:     usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
 		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.JSON(w, r, response)
 }
 
 func UseEquipment(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
+		return
+	}
+
+	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
+	if err != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
+		return
+	}
+
 	var req UseEquipmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
-		return
-	}
-
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -156,7 +175,7 @@ func UseEquipment(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		startDate, err = time.Parse("2006-01-02T15:04:05Z", req.StartDate)
 		if err != nil {
-			http.Error(w, "Invalid start date format", http.StatusBadRequest)
+			middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid start date format")
 			return
 		}
 	}
@@ -165,14 +184,14 @@ func UseEquipment(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		endDate, err = time.Parse("2006-01-02T15:04:05Z", req.EndDate)
 		if err != nil {
-			http.Error(w, "Invalid end date format", http.StatusBadRequest)
+			middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid end date format")
 			return
 		}
 	}
 
 	// Validate dates
 	if endDate.Before(startDate) {
-		http.Error(w, "End date must be after start date", http.StatusBadRequest)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "end date must be after start date")
 		return
 	}
 
@@ -180,124 +199,155 @@ func UseEquipment(w http.ResponseWriter, r *http.Request) {
 
 	// Check if equipment exists and belongs to the laboratory
 	var equipment models.Equipment
-	result := db.Where("id = ? AND laboratory_id = ?", req.EquipmentID, labID).First(&equipment)
-	if result.Error != nil {
-		http.Error(w, "Equipment not found", http.StatusNotFound)
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
 		return
 	}
 
-	// Check if researcher exists and belongs to the laboratory
-	var researcher models.Researcher
-	result = db.Where("id = ? AND laboratory_id = ?", req.ResearcherID, labID).First(&researcher)
-	if result.Error != nil {
-		http.Error(w, "Researcher not found", http.StatusNotFound)
+	// Check if user exists and belongs to the laboratory
+	var user models.User
+	if err := db.Where("id = ? AND laboratory_id = ?", req.UserID, claims.LaboratoryID).First(&user).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "user not found")
 		return
 	}
 
 	// Check for conflicts (overlapping usage periods)
 	var conflictingUsage models.EquipmentUsage
-	result = db.Where(`equipment_id = ? AND laboratory_id = ? AND 
-		((start_date <= ? AND end_date >= ?) OR 
-		 (start_date <= ? AND end_date >= ?) OR 
+	result := db.Where(`equipment_id = ? AND laboratory_id = ? AND
+		((start_date <= ? AND end_date >= ?) OR
+		 (start_date <= ? AND end_date >= ?) OR
 		 (start_date >= ? AND end_date <= ?))`,
-		req.EquipmentID, labID,
+		eqID, claims.LaboratoryID,
 		startDate, startDate,
 		endDate, endDate,
 		startDate, endDate).
 		First(&conflictingUsage)
 
 	if result.RowsAffected > 0 {
-		http.Error(w, "Equipment is already in use during the specified time period", http.StatusConflict)
+		middleware.ErrorResponse(w, r, http.StatusConflict, "equipment is already in use during the specified time period")
 		return
 	}
 
 	// Create equipment usage record
 	usage := models.EquipmentUsage{
-		EquipmentID:  req.EquipmentID,
-		ResearcherID: req.ResearcherID,
+		EquipmentID:  uint(eqID),
+		UserID:       req.UserID,
 		Description:  req.Description,
 		StartDate:    startDate,
 		EndDate:      endDate,
-		LaboratoryID: labID,
+		LaboratoryID: claims.LaboratoryID,
 	}
 
-	result = db.Create(&usage)
-	if result.Error != nil {
-		http.Error(w, "Failed to record equipment usage", http.StatusInternalServerError)
+	if err := db.Create(&usage).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to record equipment usage")
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Equipment was used successfully."))
+	w.WriteHeader(http.StatusCreated)
+	render.JSON(w, r, map[string]interface{}{
+		"message": "equipment reservation created successfully",
+		"usage":   usage,
+	})
 }
 
-func GetEquipmentUsage(w http.ResponseWriter, r *http.Request) {
-	equipmentID := r.URL.Query().Get("equipmentId")
-	laboratoryID := r.URL.Query().Get("laboratoryId")
-	page := r.URL.Query().Get("page")
+func CheckOverlap(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
 
-	if equipmentID == "" || laboratoryID == "" {
-		http.Error(w, "Equipment ID and Laboratory ID are required", http.StatusBadRequest)
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
 		return
 	}
 
 	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
 	if err != nil {
-		http.Error(w, "Invalid equipment ID", http.StatusBadRequest)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
 		return
 	}
 
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
+	var req CheckOverlapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Parse dates
+	startDate, err := time.Parse("2006-01-02T15:04:05Z07:00", req.StartDate)
 	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
-		return
-	}
-
-	pageNum := 1
-	if page != "" {
-		if p, err := strconv.Atoi(page); err == nil && p > 0 {
-			pageNum = p
+		startDate, err = time.Parse("2006-01-02T15:04:05Z", req.StartDate)
+		if err != nil {
+			middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid start date format")
+			return
 		}
 	}
 
-	db := database.GetDB()
-	var usages []models.EquipmentUsage
+	endDate, err := time.Parse("2006-01-02T15:04:05Z07:00", req.EndDate)
+	if err != nil {
+		endDate, err = time.Parse("2006-01-02T15:04:05Z", req.EndDate)
+		if err != nil {
+			middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid end date format")
+			return
+		}
+	}
 
-	offset := (pageNum - 1) * 10
-	result := db.Where("equipment_id = ? AND laboratory_id = ?", eqID, labID).
-		Preload("Researcher").
-		Order("start_date desc").
-		Offset(offset).
-		Limit(10).
-		Find(&usages)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to fetch equipment usage", http.StatusInternalServerError)
+	// Validate dates
+	if endDate.Before(startDate) {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "end date must be after start date")
 		return
 	}
 
-	var response []EquipmentUsageCalendarResponse
-	for _, usage := range usages {
-		response = append(response, EquipmentUsageCalendarResponse{
-			ID:             usage.ID,
-			EquipmentID:    usage.EquipmentID,
-			ResearcherID:   usage.ResearcherID,
-			ResearcherName: usage.Researcher.Name,
-			Description:    usage.Description,
-			StartDate:      usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
-			EndDate:        usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
-		})
+	db := database.GetDB()
+
+	// Verify equipment belongs to user's laboratory
+	var equipment models.Equipment
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
+	// Check for conflicts (overlapping usage periods)
+	var conflictingUsages []models.EquipmentUsage
+	if err := db.Where(`equipment_id = ? AND laboratory_id = ? AND
+		((start_date <= ? AND end_date >= ?) OR
+		 (start_date <= ? AND end_date >= ?) OR
+		 (start_date >= ? AND end_date <= ?))`,
+		eqID, claims.LaboratoryID,
+		startDate, startDate,
+		endDate, endDate,
+		startDate, endDate).
+		Preload("User").
+		Find(&conflictingUsages).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to check overlap")
+		return
+	}
 
-func RegisterEquipmentUsageRoutes(r chi.Router) {
-	r.Route("/equipmentusage", func(r chi.Router) {
-		r.Get("/GetEquipmentUsageCalendar", GetEquipmentUsageCalendar)
-		r.Get("/GetEquipmentUsageHistory", GetEquipmentUsageHistory)
-		r.Post("/UseEquipment", UseEquipment)
-		r.Get("/GetEquipmentUsage", GetEquipmentUsage)
+	if len(conflictingUsages) > 0 {
+		var conflicts []map[string]interface{}
+		for _, usage := range conflictingUsages {
+			userName := usage.User.FirstName + " " + usage.User.LastName
+			conflicts = append(conflicts, map[string]interface{}{
+				"id":          usage.ID,
+				"user_id":     usage.UserID,
+				"user_name":   userName,
+				"start_date":  usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
+				"end_date":    usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
+				"description": usage.Description,
+			})
+		}
+
+		render.JSON(w, r, map[string]interface{}{
+			"has_conflict": true,
+			"conflicts":    conflicts,
+		})
+		return
+	}
+
+	render.JSON(w, r, map[string]interface{}{
+		"has_conflict": false,
+		"message":      "no conflicts found",
 	})
 }

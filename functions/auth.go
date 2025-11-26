@@ -49,14 +49,15 @@ type AcceptInvitationRequest struct {
 }
 
 type UserResponse struct {
-	ID           uint      `json:"id"`
-	ClerkUserID  string    `json:"clerk_user_id"`
-	Email        string    `json:"email"`
-	FirstName    string    `json:"first_name"`
-	LastName     string    `json:"last_name"`
-	LaboratoryID *uint     `json:"laboratory_id"`
-	Role         string    `json:"role"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID             uint      `json:"id"`
+	ClerkUserID    string    `json:"clerk_user_id"`
+	Email          string    `json:"email"`
+	FirstName      string    `json:"first_name"`
+	LastName       string    `json:"last_name"`
+	OrganizationID *uint     `json:"organization_id"`
+	LaboratoryID   *uint     `json:"laboratory_id"`
+	Role           string    `json:"role"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 // Backend authentication request types
@@ -361,14 +362,15 @@ func AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userResponse := UserResponse{
-		ID:           user.ID,
-		ClerkUserID:  user.ClerkUserID,
-		Email:        user.Email,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		LaboratoryID: user.LaboratoryID,
-		Role:         user.Role,
-		CreatedAt:    user.CreatedAt,
+		ID:             user.ID,
+		ClerkUserID:    user.ClerkUserID,
+		Email:          user.Email,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		OrganizationID: user.OrganizationID,
+		LaboratoryID:   user.LaboratoryID,
+		Role:           user.Role,
+		CreatedAt:      user.CreatedAt,
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -397,17 +399,61 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userResponse := UserResponse{
-		ID:           user.ID,
-		ClerkUserID:  user.ClerkUserID,
-		Email:        user.Email,
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		LaboratoryID: user.LaboratoryID,
-		Role:         user.Role,
-		CreatedAt:    user.CreatedAt,
+		ID:             user.ID,
+		ClerkUserID:    user.ClerkUserID,
+		Email:          user.Email,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		OrganizationID: user.OrganizationID,
+		LaboratoryID:   user.LaboratoryID,
+		Role:           user.Role,
+		CreatedAt:      user.CreatedAt,
 	}
 
 	render.JSON(w, r, userResponse)
+}
+
+// RefreshToken returns a fresh JWT token for the authenticated user
+// This allows the frontend to refresh tokens without re-authenticating
+func RefreshToken(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "No user claims found")
+		return
+	}
+
+	// Get fresh session token from Clerk
+	token, err := createClerkSession(claims.ClerkUserID)
+	if err != nil {
+		log.Printf("Failed to refresh token for user %s: %v", claims.ClerkUserID, err)
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "Failed to refresh token")
+		return
+	}
+
+	db := database.GetDB()
+	var user models.User
+	if err := db.Where("clerk_user_id = ?", claims.ClerkUserID).First(&user).Error; err != nil {
+		log.Printf("Database error: %v", err)
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "Database error")
+		return
+	}
+
+	authResponse := AuthResponse{
+		Token: token,
+		User: UserResponse{
+			ID:             user.ID,
+			ClerkUserID:    user.ClerkUserID,
+			Email:          user.Email,
+			FirstName:      user.FirstName,
+			LastName:       user.LastName,
+			OrganizationID: user.OrganizationID,
+			LaboratoryID:   user.LaboratoryID,
+			Role:           user.Role,
+			CreatedAt:      user.CreatedAt,
+		},
+	}
+
+	render.JSON(w, r, authResponse)
 }
 
 // SignUp creates a new user with Clerk Backend API
@@ -515,13 +561,15 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, map[string]interface{}{
 			"message": "User created successfully. Please login.",
 			"user": UserResponse{
-				ID:          user.ID,
-				ClerkUserID: user.ClerkUserID,
-				Email:       user.Email,
-				FirstName:   user.FirstName,
-				LastName:    user.LastName,
-				Role:        user.Role,
-				CreatedAt:   user.CreatedAt,
+				ID:             user.ID,
+				ClerkUserID:    user.ClerkUserID,
+				Email:          user.Email,
+				FirstName:      user.FirstName,
+				LastName:       user.LastName,
+				OrganizationID: user.OrganizationID,
+				LaboratoryID:   user.LaboratoryID,
+				Role:           user.Role,
+				CreatedAt:      user.CreatedAt,
 			},
 		})
 		return
@@ -530,13 +578,15 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	authResponse := AuthResponse{
 		Token: token,
 		User: UserResponse{
-			ID:          user.ID,
-			ClerkUserID: user.ClerkUserID,
-			Email:       user.Email,
-			FirstName:   user.FirstName,
-			LastName:    user.LastName,
-			Role:        user.Role,
-			CreatedAt:   user.CreatedAt,
+			ID:             user.ID,
+			ClerkUserID:    user.ClerkUserID,
+			Email:          user.Email,
+			FirstName:      user.FirstName,
+			LastName:       user.LastName,
+			OrganizationID: user.OrganizationID,
+			LaboratoryID:   user.LaboratoryID,
+			Role:           user.Role,
+			CreatedAt:      user.CreatedAt,
 		},
 	}
 

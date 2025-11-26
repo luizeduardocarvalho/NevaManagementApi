@@ -70,6 +70,10 @@ func SetupRouter() *chi.Mux {
 
 			// User management
 			r.Get("/auth/me", functions.GetCurrentUser)
+			r.Post("/auth/refresh", functions.RefreshToken)
+
+			// Organization management
+			functions.RegisterOrganizationRoutes(r)
 
 			// Laboratory management
 			r.Post("/laboratories", functions.CreateLaboratory)
@@ -88,11 +92,17 @@ func SetupRouter() *chi.Mux {
 			// Product management
 			functions.RegisterProductRoutes(r)
 
-			// Equipment management
+			// Equipment management (includes usage routes)
 			functions.RegisterEquipmentRoutes(r)
 
-			// Equipment usage management
-			functions.RegisterEquipmentUsageRoutes(r)
+			// Researcher management
+			functions.RegisterResearcherRoutes(r)
+
+			// Sample management
+			functions.RegisterSampleRoutes(r)
+
+			// Replica management
+			functions.RegisterReplicaRoutes(r)
 		})
 	})
 

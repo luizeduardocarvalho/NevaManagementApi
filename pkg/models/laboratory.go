@@ -1,20 +1,36 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 	"time"
 	"gorm.io/gorm"
 )
 
+type Organization struct {
+	ID           uint           `gorm:"primarykey" json:"id"`
+	Name         string         `gorm:"size:100;not null" json:"name"`
+	Description  string         `json:"description"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relations
+	Laboratories []Laboratory `json:"laboratories,omitempty"`
+	Users        []User       `json:"users,omitempty"`
+}
+
 type Laboratory struct {
-	ID          uint           `gorm:"primarykey" json:"id"`
-	Name        string         `gorm:"size:100;not null" json:"name"`
-	Description string         `json:"description"`
-	Address     string         `gorm:"size:200" json:"address"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
-	
+	ID             uint           `gorm:"primarykey" json:"id"`
+	OrganizationID uint           `gorm:"not null;index" json:"organization_id"`
+	Organization   *Organization  `json:"organization,omitempty"`
+	Name           string         `gorm:"size:100;not null" json:"name"`
+	Description    string         `json:"description"`
+	Address        string         `gorm:"size:200" json:"address"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+
 	// Relations
 	Invitations []LaboratoryInvitation `json:"invitations,omitempty"`
 	Users       []User                 `json:"users,omitempty"`
@@ -25,7 +41,7 @@ type LaboratoryInvitation struct {
 	LaboratoryID    uint           `gorm:"not null;index:idx_lab_email_status" json:"laboratory_id"`
 	Laboratory      Laboratory     `json:"laboratory,omitempty"`
 	Email           string         `gorm:"size:255;not null;index;index:idx_lab_email_status" json:"email"`
-	Role            string         `gorm:"size:50;not null;check:role IN ('coordinator', 'technician', 'student')" json:"role"`
+	Role            string         `gorm:"size:50;not null;check:role IN ('lab-coordinator', 'technician', 'student')" json:"role"`
 	FirstName       string         `gorm:"size:100" json:"first_name"`
 	LastName        string         `gorm:"size:100" json:"last_name"`
 	InvitedBy       uint           `gorm:"not null" json:"invited_by"`
@@ -52,18 +68,28 @@ func (i *LaboratoryInvitation) BeforeUpdate(tx *gorm.DB) error {
 }
 
 type User struct {
-	ID           uint           `gorm:"primarykey" json:"id"`
-	ClerkUserID  string         `gorm:"size:255;unique;not null" json:"clerk_user_id"`
-	Email        string         `gorm:"size:255;unique;not null;index" json:"email"`
-	FirstName    string         `gorm:"size:100" json:"first_name"`
-	LastName     string         `gorm:"size:100" json:"last_name"`
-	LaboratoryID *uint          `json:"laboratory_id"`
-	Laboratory   *Laboratory    `json:"laboratory,omitempty"`
-	Role         string         `gorm:"size:50" json:"role"`
-	Status       string         `gorm:"size:20;default:'active';check:status IN ('pending', 'active', 'suspended');index" json:"status"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID             uint           `gorm:"primarykey" json:"id"`
+	ClerkUserID    string         `gorm:"size:255;unique;not null" json:"clerk_user_id"`
+	Email          string         `gorm:"size:255;unique;not null;index" json:"email"`
+	FirstName      string         `gorm:"size:100" json:"first_name"`
+	LastName       string         `gorm:"size:100" json:"last_name"`
+	OrganizationID *uint          `json:"organization_id"`
+	Organization   *Organization  `json:"organization,omitempty"`
+	LaboratoryID   *uint          `json:"laboratory_id"`
+	Laboratory     *Laboratory    `json:"laboratory,omitempty"`
+	Role           string         `gorm:"size:50;check:role IN ('org-coordinator', 'lab-coordinator', 'technician', 'student')" json:"role"`
+	Status         string         `gorm:"size:20;default:'active';check:status IN ('pending', 'active', 'suspended');index" json:"status"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+// BeforeSave hook to enforce mutual exclusivity between organization and laboratory
+func (u *User) BeforeSave(tx *gorm.DB) error {
+	if u.OrganizationID != nil && u.LaboratoryID != nil {
+		return fmt.Errorf("user cannot belong to both organization and laboratory")
+	}
+	return nil
 }
 
 type Location struct {
@@ -129,23 +155,10 @@ type Equipment struct {
 	DeletedAt      gorm.DeletedAt    `gorm:"index" json:"-"`
 }
 
-type Researcher struct {
-	ID              uint              `gorm:"primarykey" json:"id"`
-	Name            string            `gorm:"size:80;not null" json:"name"`
-	ClerkUserID     string            `gorm:"size:255;unique;not null" json:"clerk_user_id"`
-	Email           string            `gorm:"size:255;unique;not null" json:"email"`
-	LaboratoryID    uint              `gorm:"not null" json:"laboratory_id"`
-	Laboratory      Laboratory        `json:"laboratory,omitempty"`
-	EquipmentUsages []EquipmentUsage  `json:"equipment_usages,omitempty"`
-	CreatedAt       time.Time         `json:"created_at"`
-	UpdatedAt       time.Time         `json:"updated_at"`
-	DeletedAt       gorm.DeletedAt    `gorm:"index" json:"-"`
-}
-
 type EquipmentUsage struct {
 	ID           uint           `gorm:"primarykey" json:"id"`
-	ResearcherID uint           `gorm:"not null" json:"researcher_id"`
-	Researcher   Researcher     `json:"researcher,omitempty"`
+	UserID       uint           `gorm:"not null" json:"user_id"`
+	User         User           `json:"user,omitempty"`
 	EquipmentID  uint           `gorm:"not null" json:"equipment_id"`
 	Equipment    Equipment      `json:"equipment,omitempty"`
 	StartDate    time.Time      `gorm:"not null" json:"start_date"`

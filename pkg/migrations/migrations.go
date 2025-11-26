@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"fmt"
+
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
 
@@ -17,18 +19,14 @@ var migrationList = []*gormigrate.Migration{
 				&models.User{},
 				&models.Location{},
 				&models.Product{},
-				&models.ProductUsage{},
 				&models.Equipment{},
-				&models.Researcher{},
 				&models.EquipmentUsage{},
 			)
 		},
 		Rollback: func(tx *gorm.DB) error {
 			return tx.Migrator().DropTable(
 				&models.EquipmentUsage{},
-				&models.Researcher{},
 				&models.Equipment{},
-				&models.ProductUsage{},
 				&models.Product{},
 				&models.Location{},
 				&models.User{},
@@ -129,6 +127,294 @@ var migrationList = []*gormigrate.Migration{
 				return err
 			}
 
+			return nil
+		},
+	},
+	{
+		ID: "20250223_add_product_usages",
+		Migrate: func(tx *gorm.DB) error {
+			// Create product_usages table manually
+			return tx.Exec(`
+				CREATE TABLE IF NOT EXISTS product_usages (
+					id BIGSERIAL PRIMARY KEY,
+					product_id BIGINT NOT NULL,
+					user_id BIGINT NOT NULL,
+					quantity_used DOUBLE PRECISION NOT NULL,
+					unit VARCHAR(50) NOT NULL,
+					used_at TIMESTAMP NOT NULL,
+					notes TEXT,
+					laboratory_id BIGINT NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (product_id) REFERENCES products(id),
+					FOREIGN KEY (user_id) REFERENCES users(id),
+					FOREIGN KEY (laboratory_id) REFERENCES laboratories(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_product_usages_product_id ON product_usages(product_id);
+				CREATE INDEX IF NOT EXISTS idx_product_usages_used_at ON product_usages(used_at);
+				CREATE INDEX IF NOT EXISTS idx_product_usages_laboratory_id ON product_usages(laboratory_id);
+				CREATE INDEX IF NOT EXISTS idx_product_usages_deleted_at ON product_usages(deleted_at);
+			`).Error
+		},
+		Rollback: func(tx *gorm.DB) error {
+			return tx.Exec(`DROP TABLE IF EXISTS product_usages`).Error
+		},
+	},
+	{
+		ID: "20251124_add_organization_hierarchy",
+		Migrate: func(tx *gorm.DB) error {
+			// Step 1: Create organizations table
+			if err := tx.AutoMigrate(&models.Organization{}); err != nil {
+				return fmt.Errorf("failed to create organizations table: %w", err)
+			}
+
+			// Step 2: Create default organization for each existing lab
+			type TempLab struct {
+				ID   uint
+				Name string
+			}
+			var labs []TempLab
+			if err := tx.Table("laboratories").Select("id, name").Where("deleted_at IS NULL").Find(&labs).Error; err != nil {
+				return fmt.Errorf("failed to fetch laboratories: %w", err)
+			}
+
+			// Map to store lab_id -> org_id
+			labToOrgMap := make(map[uint]uint)
+
+			for _, lab := range labs {
+				org := models.Organization{
+					Name:        fmt.Sprintf("%s Organization", lab.Name),
+					Description: "Auto-created organization during hierarchy migration",
+				}
+				if err := tx.Create(&org).Error; err != nil {
+					return fmt.Errorf("failed to create organization for lab %d: %w", lab.ID, err)
+				}
+				labToOrgMap[lab.ID] = org.ID
+			}
+
+			// Step 3: Add organization_id column to laboratories (nullable first)
+			if !tx.Migrator().HasColumn(&models.Laboratory{}, "organization_id") {
+				if err := tx.Exec(`ALTER TABLE laboratories ADD COLUMN organization_id BIGINT`).Error; err != nil {
+					return fmt.Errorf("failed to add organization_id to laboratories: %w", err)
+				}
+			}
+
+			// Step 4: Populate organization_id for existing labs
+			for labID, orgID := range labToOrgMap {
+				if err := tx.Exec("UPDATE laboratories SET organization_id = ? WHERE id = ?", orgID, labID).Error; err != nil {
+					return fmt.Errorf("failed to update laboratory %d with organization_id: %w", labID, err)
+				}
+			}
+
+			// Step 5: Make organization_id NOT NULL and add foreign key
+			if err := tx.Exec(`ALTER TABLE laboratories ALTER COLUMN organization_id SET NOT NULL`).Error; err != nil {
+				return fmt.Errorf("failed to set organization_id as NOT NULL: %w", err)
+			}
+
+			// Step 6: Add organization_id column to users (nullable, as org users won't have lab_id)
+			if !tx.Migrator().HasColumn(&models.User{}, "organization_id") {
+				if err := tx.Exec(`ALTER TABLE users ADD COLUMN organization_id BIGINT`).Error; err != nil {
+					return fmt.Errorf("failed to add organization_id to users: %w", err)
+				}
+			}
+
+			// Step 7: Rename 'coordinator' to 'lab-coordinator' in users
+			if err := tx.Exec(`UPDATE users SET role = 'lab-coordinator' WHERE role = 'coordinator'`).Error; err != nil {
+				return fmt.Errorf("failed to rename coordinator role in users: %w", err)
+			}
+
+			// Step 8: Rename 'coordinator' to 'lab-coordinator' in invitations
+			if err := tx.Exec(`UPDATE laboratory_invitations SET role = 'lab-coordinator' WHERE role = 'coordinator'`).Error; err != nil {
+				return fmt.Errorf("failed to rename coordinator role in invitations: %w", err)
+			}
+
+			// Step 9: Create indexes
+			tx.Exec(`CREATE INDEX IF NOT EXISTS idx_laboratories_organization_id ON laboratories(organization_id)`)
+			tx.Exec(`CREATE INDEX IF NOT EXISTS idx_users_organization_id ON users(organization_id)`)
+
+			// Step 10: Add foreign key constraints
+			tx.Exec(`ALTER TABLE laboratories ADD CONSTRAINT fk_laboratories_organization FOREIGN KEY (organization_id) REFERENCES organizations(id)`)
+			tx.Exec(`ALTER TABLE users ADD CONSTRAINT fk_users_organization FOREIGN KEY (organization_id) REFERENCES organizations(id)`)
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			// Revert role changes
+			tx.Exec(`UPDATE users SET role = 'coordinator' WHERE role = 'lab-coordinator'`)
+			tx.Exec(`UPDATE laboratory_invitations SET role = 'coordinator' WHERE role = 'lab-coordinator'`)
+
+			// Drop foreign key constraints
+			tx.Exec(`ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_organization`)
+			tx.Exec(`ALTER TABLE laboratories DROP CONSTRAINT IF EXISTS fk_laboratories_organization`)
+
+			// Remove indexes
+			tx.Exec(`DROP INDEX IF EXISTS idx_users_organization_id`)
+			tx.Exec(`DROP INDEX IF EXISTS idx_laboratories_organization_id`)
+
+			// Remove columns
+			if err := tx.Migrator().DropColumn(&models.Laboratory{}, "organization_id"); err != nil {
+				return err
+			}
+			if err := tx.Migrator().DropColumn(&models.User{}, "organization_id"); err != nil {
+				return err
+			}
+
+			// Drop organizations table
+			return tx.Migrator().DropTable(&models.Organization{})
+		},
+	},
+	{
+		ID: "20251124_remove_researcher_table",
+		Migrate: func(tx *gorm.DB) error {
+			// Step 1: Check if researchers table exists
+			if tx.Migrator().HasTable("researchers") {
+				// Step 2: Add user_id column to equipment_usages (nullable first)
+				if !tx.Migrator().HasColumn(&models.EquipmentUsage{}, "user_id") {
+					if err := tx.Exec(`ALTER TABLE equipment_usages ADD COLUMN user_id BIGINT`).Error; err != nil {
+						return fmt.Errorf("failed to add user_id column: %w", err)
+					}
+				}
+
+				// Step 3: Migrate data from researcher_id to user_id
+				// For existing data, we need to find matching users by clerk_user_id and email
+				if err := tx.Exec(`
+					UPDATE equipment_usages eu
+					SET user_id = u.id
+					FROM researchers r
+					JOIN users u ON r.clerk_user_id = u.clerk_user_id AND r.email = u.email
+					WHERE eu.researcher_id = r.id
+				`).Error; err != nil {
+					return fmt.Errorf("failed to migrate researcher_id to user_id: %w", err)
+				}
+
+				// Step 4: Drop the researcher_id column
+				if tx.Migrator().HasColumn(&models.EquipmentUsage{}, "researcher_id") {
+					if err := tx.Migrator().DropColumn(&models.EquipmentUsage{}, "researcher_id"); err != nil {
+						return fmt.Errorf("failed to drop researcher_id column: %w", err)
+					}
+				}
+
+				// Step 5: Make user_id NOT NULL
+				if err := tx.Exec(`ALTER TABLE equipment_usages ALTER COLUMN user_id SET NOT NULL`).Error; err != nil {
+					return fmt.Errorf("failed to set user_id as NOT NULL: %w", err)
+				}
+
+				// Step 6: Add foreign key constraint
+				if err := tx.Exec(`ALTER TABLE equipment_usages ADD CONSTRAINT fk_equipment_usages_user FOREIGN KEY (user_id) REFERENCES users(id)`).Error; err != nil {
+					return fmt.Errorf("failed to add foreign key: %w", err)
+				}
+
+				// Step 7: Drop researchers table
+				if err := tx.Migrator().DropTable("researchers"); err != nil {
+					return fmt.Errorf("failed to drop researchers table: %w", err)
+				}
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			// This rollback is complex and may result in data loss
+			// For now, we'll just log a warning
+			return fmt.Errorf("rollback not supported for removing researcher table - manual intervention required")
+		},
+	},
+	{
+		ID: "20251124_remove_admin_role",
+		Migrate: func(tx *gorm.DB) error {
+			// Step 1: Rename 'Admin' to 'lab-coordinator' in users table
+			if err := tx.Exec(`UPDATE users SET role = 'lab-coordinator' WHERE role = 'Admin'`).Error; err != nil {
+				return fmt.Errorf("failed to rename Admin role in users: %w", err)
+			}
+
+			// Step 2: Drop old role constraint and add new one without Admin
+			if err := tx.Exec(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check`).Error; err != nil {
+				return fmt.Errorf("failed to drop old role constraint: %w", err)
+			}
+
+			if err := tx.Exec(`ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('org-coordinator', 'lab-coordinator', 'technician', 'student'))`).Error; err != nil {
+				return fmt.Errorf("failed to add new role constraint: %w", err)
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			// Revert role changes
+			tx.Exec(`UPDATE users SET role = 'Admin' WHERE role = 'lab-coordinator'`)
+
+			// Add back Admin to constraint
+			tx.Exec(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check`)
+			tx.Exec(`ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('org-coordinator', 'lab-coordinator', 'technician', 'student', 'Admin'))`)
+
+			return nil
+		},
+	},
+	{
+		ID: "20251125_add_samples_and_replicas",
+		Migrate: func(tx *gorm.DB) error {
+			// Create samples table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS samples (
+					id BIGSERIAL PRIMARY KEY,
+					name VARCHAR(255) NOT NULL,
+					description TEXT,
+					origin VARCHAR(255),
+					isolation_date TIMESTAMP,
+					latitude DOUBLE PRECISION,
+					longitude DOUBLE PRECISION,
+					subculture_medium VARCHAR(255),
+					subculture_interval_days INTEGER,
+					researcher_id BIGINT,
+					location_id BIGINT,
+					tags JSONB,
+					laboratory_id BIGINT NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (researcher_id) REFERENCES users(id),
+					FOREIGN KEY (location_id) REFERENCES locations(id),
+					FOREIGN KEY (laboratory_id) REFERENCES laboratories(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_samples_laboratory_id ON samples(laboratory_id);
+				CREATE INDEX IF NOT EXISTS idx_samples_deleted_at ON samples(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create samples table: %w", err)
+			}
+
+			// Create replicas table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS replicas (
+					id BIGSERIAL PRIMARY KEY,
+					name VARCHAR(255) NOT NULL,
+					sample_id BIGINT NOT NULL,
+					location_id BIGINT,
+					status VARCHAR(50) DEFAULT 'active',
+					last_subculture_date TIMESTAMP,
+					next_subculture_date TIMESTAMP,
+					laboratory_id BIGINT NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (sample_id) REFERENCES samples(id),
+					FOREIGN KEY (location_id) REFERENCES locations(id),
+					FOREIGN KEY (laboratory_id) REFERENCES laboratories(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_replicas_sample_id ON replicas(sample_id);
+				CREATE INDEX IF NOT EXISTS idx_replicas_laboratory_id ON replicas(laboratory_id);
+				CREATE INDEX IF NOT EXISTS idx_replicas_deleted_at ON replicas(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create replicas table: %w", err)
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			if err := tx.Exec(`DROP TABLE IF EXISTS replicas`).Error; err != nil {
+				return err
+			}
+			if err := tx.Exec(`DROP TABLE IF EXISTS samples`).Error; err != nil {
+				return err
+			}
 			return nil
 		},
 	},

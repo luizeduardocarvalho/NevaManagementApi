@@ -7,7 +7,9 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/database"
+	"github.com/luizeduardocarvalho/labflux-functions/pkg/middleware"
 	"github.com/luizeduardocarvalho/labflux-functions/pkg/models"
 )
 
@@ -37,15 +39,14 @@ type GetDetailedEquipmentResponse struct {
 
 type GetEquipmentUsageResponse struct {
 	ID          uint   `json:"id"`
-	ResearcherID uint   `json:"researcher_id"`
-	ResearcherName string `json:"researcher_name"`
+	UserID      uint   `json:"user_id"`
+	UserName    string `json:"user_name"`
 	StartDate   string `json:"start_date"`
 	EndDate     string `json:"end_date"`
 	Description string `json:"description"`
 }
 
 type EditEquipmentRequest struct {
-	ID             uint   `json:"id" validate:"required"`
 	Name           string `json:"name" validate:"required"`
 	Description    string `json:"description"`
 	PropertyNumber string `json:"property_number"`
@@ -53,26 +54,50 @@ type EditEquipmentRequest struct {
 }
 
 func GetEquipments(w http.ResponseWriter, r *http.Request) {
-	laboratoryID := r.URL.Query().Get("laboratoryId")
-
-	if laboratoryID == "" {
-		http.Error(w, "Laboratory ID is required", http.StatusBadRequest)
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
 		return
 	}
 
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
+	if claims.LaboratoryID == 0 {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "user does not belong to a laboratory")
 		return
+	}
+
+	// Pagination parameters
+	page := 1
+	pageSize := 20
+	if p := r.URL.Query().Get("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
+		}
+	}
+	if ps := r.URL.Query().Get("pageSize"); ps != "" {
+		if parsed, err := strconv.Atoi(ps); err == nil && parsed > 0 && parsed <= 100 {
+			pageSize = parsed
+		}
 	}
 
 	db := database.GetDB()
+
+	// Get total count
+	var total int64
+	if err := db.Model(&models.Equipment{}).Where("laboratory_id = ?", claims.LaboratoryID).Count(&total).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to count equipment")
+		return
+	}
+
+	// Get paginated equipment
 	var equipment []models.Equipment
-
-	result := db.Where("laboratory_id = ?", labID).Find(&equipment)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to fetch equipment", http.StatusInternalServerError)
+	offset := (page - 1) * pageSize
+	if err := db.Where("laboratory_id = ?", claims.LaboratoryID).
+		Preload("Location").
+		Order("name").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to fetch equipment")
 		return
 	}
 
@@ -87,27 +112,38 @@ func GetEquipments(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.JSON(w, r, map[string]interface{}{
+		"equipment": response,
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
+	})
 }
 
 func AddEquipment(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	if claims.LaboratoryID == 0 {
+		middleware.ErrorResponse(w, r, http.StatusForbidden, "user does not belong to a laboratory")
+		return
+	}
+
 	var req AddEquipmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
-		return
-	}
+	db := database.GetDB()
 
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
+	// Validate location belongs to same laboratory
+	var location models.Location
+	if err := db.Where("id = ? AND laboratory_id = ?", req.LocationID, claims.LaboratoryID).First(&location).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid location")
 		return
 	}
 
@@ -116,64 +152,62 @@ func AddEquipment(w http.ResponseWriter, r *http.Request) {
 		Description:    req.Description,
 		PropertyNumber: req.PropertyNumber,
 		LocationID:     req.LocationID,
-		LaboratoryID:   labID,
+		LaboratoryID:   claims.LaboratoryID,
 	}
 
-	db := database.GetDB()
-	result := db.Create(&equipment)
-
-	if result.Error != nil {
-		http.Error(w, "Failed to create equipment", http.StatusInternalServerError)
+	if err := db.Create(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to create equipment")
 		return
 	}
 
-	fmt.Fprintf(w, "%s was created successfully.", req.Name)
+	w.WriteHeader(http.StatusCreated)
+	render.JSON(w, r, map[string]interface{}{
+		"message": fmt.Sprintf("%s was created successfully", req.Name),
+		"equipment": equipment,
+	})
 }
 
 func GetDetailedEquipment(w http.ResponseWriter, r *http.Request) {
-	equipmentID := r.URL.Query().Get("id")
-	laboratoryID := r.URL.Query().Get("laboratoryId")
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
 
-	if equipmentID == "" || laboratoryID == "" {
-		http.Error(w, "Equipment ID and Laboratory ID are required", http.StatusBadRequest)
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
 		return
 	}
 
 	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
 	if err != nil {
-		http.Error(w, "Invalid equipment ID", http.StatusBadRequest)
-		return
-	}
-
-	labID, err := strconv.ParseUint(laboratoryID, 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid laboratory ID", http.StatusBadRequest)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
 		return
 	}
 
 	db := database.GetDB()
 	var equipment models.Equipment
 
-	result := db.Where("id = ? AND laboratory_id = ?", eqID, labID).
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).
 		Preload("Location").
 		Preload("EquipmentUsages").
-		Preload("EquipmentUsages.Researcher").
-		First(&equipment)
-
-	if result.Error != nil {
-		http.Error(w, "Equipment not found", http.StatusNotFound)
+		Preload("EquipmentUsages.User").
+		First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
 		return
 	}
 
 	var usageList []GetEquipmentUsageResponse
 	for _, usage := range equipment.EquipmentUsages {
+		userName := usage.User.FirstName + " " + usage.User.LastName
 		usageList = append(usageList, GetEquipmentUsageResponse{
-			ID:             usage.ID,
-			ResearcherID:   usage.ResearcherID,
-			ResearcherName: usage.Researcher.Name,
-			StartDate:      usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
-			EndDate:        usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
-			Description:    usage.Description,
+			ID:          usage.ID,
+			UserID:      usage.UserID,
+			UserName:    userName,
+			StartDate:   usage.StartDate.Format("2006-01-02T15:04:05Z07:00"),
+			EndDate:     usage.EndDate.Format("2006-01-02T15:04:05Z07:00"),
+			Description: usage.Description,
 		})
 	}
 
@@ -190,36 +224,46 @@ func GetDetailedEquipment(w http.ResponseWriter, r *http.Request) {
 		UsageList: usageList,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	render.JSON(w, r, response)
 }
 
 func EditEquipment(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
+		return
+	}
+
+	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
+	if err != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
+		return
+	}
+
 	var req EditEquipmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Get laboratory ID from JWT claims
-	laboratoryID := r.Context().Value("laboratory_id")
-	if laboratoryID == nil {
-		http.Error(w, "Laboratory ID not found in token", http.StatusUnauthorized)
-		return
-	}
-
-	labID, ok := laboratoryID.(uint)
-	if !ok {
-		http.Error(w, "Invalid laboratory ID in token", http.StatusUnauthorized)
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	db := database.GetDB()
-	var equipment models.Equipment
 
-	result := db.Where("id = ? AND laboratory_id = ?", req.ID, labID).First(&equipment)
-	if result.Error != nil {
-		http.Error(w, "Equipment not found", http.StatusNotFound)
+	// Validate location belongs to same laboratory
+	var location models.Location
+	if err := db.Where("id = ? AND laboratory_id = ?", req.LocationID, claims.LaboratoryID).First(&location).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid location")
+		return
+	}
+
+	var equipment models.Equipment
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
 		return
 	}
 
@@ -228,20 +272,65 @@ func EditEquipment(w http.ResponseWriter, r *http.Request) {
 	equipment.PropertyNumber = req.PropertyNumber
 	equipment.LocationID = req.LocationID
 
-	result = db.Save(&equipment)
-	if result.Error != nil {
-		http.Error(w, "Failed to update equipment", http.StatusInternalServerError)
+	if err := db.Save(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to update equipment")
 		return
 	}
 
-	fmt.Fprintf(w, "%s was updated successfully.", req.Name)
+	render.JSON(w, r, map[string]interface{}{
+		"message": fmt.Sprintf("%s was updated successfully", req.Name),
+		"equipment": equipment,
+	})
+}
+
+func DeleteEquipment(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.GetUserClaims(r)
+	if !ok {
+		middleware.ErrorResponse(w, r, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	equipmentID := chi.URLParam(r, "id")
+	if equipmentID == "" {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "equipment ID is required")
+		return
+	}
+
+	eqID, err := strconv.ParseUint(equipmentID, 10, 32)
+	if err != nil {
+		middleware.ErrorResponse(w, r, http.StatusBadRequest, "invalid equipment ID")
+		return
+	}
+
+	db := database.GetDB()
+	var equipment models.Equipment
+
+	if err := db.Where("id = ? AND laboratory_id = ?", eqID, claims.LaboratoryID).First(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusNotFound, "equipment not found")
+		return
+	}
+
+	// Soft delete
+	if err := db.Delete(&equipment).Error; err != nil {
+		middleware.ErrorResponse(w, r, http.StatusInternalServerError, "failed to delete equipment")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func RegisterEquipmentRoutes(r chi.Router) {
 	r.Route("/equipment", func(r chi.Router) {
-		r.Get("/GetEquipments", GetEquipments)
-		r.Post("/AddEquipment", AddEquipment)
-		r.Get("/GetDetailedEquipment", GetDetailedEquipment)
-		r.Patch("/EditEquipment", EditEquipment)
+		r.Get("/", GetEquipments)
+		r.Post("/", AddEquipment)
+		r.Get("/{id}", GetDetailedEquipment)
+		r.Put("/{id}", EditEquipment)
+		r.Delete("/{id}", DeleteEquipment)
+
+		// Equipment usage routes
+		r.Post("/{id}/use", UseEquipment)
+		r.Get("/{id}/usage-history", GetEquipmentUsageHistory)
+		r.Get("/{id}/calendar", GetEquipmentUsageCalendar)
+		r.Post("/{id}/check-overlap", CheckOverlap)
 	})
 }

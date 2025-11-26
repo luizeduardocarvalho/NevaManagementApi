@@ -27,11 +27,12 @@ type ClerkClaims struct {
 }
 
 type JWTClaims struct {
-	UserID       uint   `json:"user_id"`
-	ClerkUserID  string `json:"clerk_user_id"`
-	Email        string `json:"email"`
-	LaboratoryID uint   `json:"laboratory_id"`
-	Role         string `json:"role"`
+	UserID         uint   `json:"user_id"`
+	ClerkUserID    string `json:"clerk_user_id"`
+	Email          string `json:"email"`
+	OrganizationID uint   `json:"organization_id"`
+	LaboratoryID   uint   `json:"laboratory_id"`
+	Role           string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -105,9 +106,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			Role:         user.Role,
 		}
 
-		// Add laboratory ID if user has one
+		// Add laboratory ID if user has one (lab-scoped user)
 		if user.LaboratoryID != nil {
 			claims.LaboratoryID = *user.LaboratoryID
+		}
+
+		// Add organization ID if user has one (org-scoped user)
+		if user.OrganizationID != nil {
+			claims.OrganizationID = *user.OrganizationID
 		}
 
 		// Add claims to request context

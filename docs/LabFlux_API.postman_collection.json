@@ -1,9 +1,10 @@
 {
 	"info": {
-		"name": "LabFlux API",
-		"description": "Complete API collection for LabFlux Laboratory Management System",
+		"name": "LabFlux API - Complete",
+		"description": "Complete API collection for LabFlux Laboratory Management System with Organizations, Labs, Researchers, Products, Equipment, and more",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "labflux"
+		"_exporter_id": "labflux",
+		"version": "2.0.0"
 	},
 	"auth": {
 		"type": "bearer",
@@ -32,7 +33,32 @@
 			"type": "string"
 		},
 		{
+			"key": "organization_id",
+			"value": "",
+			"type": "string"
+		},
+		{
 			"key": "laboratory_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "location_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "product_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "equipment_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "researcher_id",
 			"value": "",
 			"type": "string"
 		}
@@ -174,6 +200,28 @@
 					"response": []
 				},
 				{
+					"name": "Get Invitation by Token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/invitations/token/:token",
+							"host": ["{{base_url}}"],
+							"path": ["api", "invitations", "token", ":token"],
+							"variable": [
+								{
+									"key": "token",
+									"value": "invitation-token-here"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Accept Invitation",
 					"request": {
 						"auth": {
@@ -244,6 +292,62 @@
 			]
 		},
 		{
+			"name": "Organizations",
+			"item": [
+				{
+					"name": "Create Organization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.organization && jsonData.organization.id) {",
+									"        pm.collectionVariables.set(\"organization_id\", jsonData.organization.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"University of Science\",\n  \"description\": \"Main research university with multiple labs\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/organizations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "organizations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/organizations/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "organizations", "me"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Laboratories",
 			"item": [
 				{
@@ -253,10 +357,10 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"if (pm.response.code === 201) {",
 									"    const jsonData = pm.response.json();",
-									"    if (jsonData.id) {",
-									"        pm.collectionVariables.set(\"laboratory_id\", jsonData.id);",
+									"    if (jsonData.laboratory && jsonData.laboratory.id) {",
+									"        pm.collectionVariables.set(\"laboratory_id\", jsonData.laboratory.id);",
 									"    }",
 									"}"
 								],
@@ -320,7 +424,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"role\": \"researcher\"\n}"
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"role\": \"technician\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/laboratories/:laboratoryId/invitations",
@@ -354,6 +458,348 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Resend Invitation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/invitations/:id/resend",
+							"host": ["{{base_url}}"],
+							"path": ["api", "invitations", ":id", "resend"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Invitation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/invitations/:id/cancel",
+							"host": ["{{base_url}}"],
+							"path": ["api", "invitations", ":id", "cancel"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Invitation",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/invitations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "invitations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Researchers",
+			"item": [
+				{
+					"name": "Get All Researchers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/researchers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Researchers (Simple)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/researchers?simple=true",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers"],
+							"query": [
+								{
+									"key": "simple",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Researcher by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{researcher_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Researcher",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set(\"researcher_id\", jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"researcher@labflux.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Researcher\",\n  \"role\": \"technician\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Researcher",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"John Updated\",\n  \"last_name\": \"Researcher\",\n  \"role\": \"student\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/researchers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{researcher_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Researcher",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/researchers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "researchers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{researcher_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Locations",
+			"item": [
+				{
+					"name": "Get All Locations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/locations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "locations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Location by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/locations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "locations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{location_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Location",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.id) {",
+									"        pm.collectionVariables.set(\"location_id\", jsonData.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Storage Room A\",\n  \"description\": \"Main chemical storage area\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/locations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "locations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Sub-Location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Shelf A1\",\n  \"description\": \"Top shelf for acids\",\n  \"sub_location_id\": {{location_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/locations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "locations"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Location",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Storage Room A - Updated\",\n  \"description\": \"Main chemical storage area - climate controlled\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/locations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "locations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{location_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Location",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/locations/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "locations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{location_id}}"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -366,26 +812,17 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/products/GetAll",
+							"raw": "{{base_url}}/api/products?page=1&pageSize=20",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "GetAll"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Product By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/products/GetProductById?id=",
-							"host": ["{{base_url}}"],
-							"path": ["api", "products", "GetProductById"],
+							"path": ["api", "products"],
 							"query": [
 								{
-									"key": "id",
-									"value": ""
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
 								}
 							]
 						}
@@ -393,18 +830,44 @@
 					"response": []
 				},
 				{
-					"name": "Get Detailed Product By ID",
+					"name": "Get Low Stock Products",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/products/GetDetailedProductById?id=",
+							"raw": "{{base_url}}/api/products/low-stock",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "GetDetailedProductById"],
-							"query": [
+							"path": ["api", "products", "low-stock"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Expired Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/expired",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", "expired"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", ":id"],
+							"variable": [
 								{
 									"key": "id",
-									"value": ""
+									"value": "{{product_id}}"
 								}
 							]
 						}
@@ -412,20 +875,61 @@
 					"response": []
 				},
 				{
-					"name": "Get Low In Stock Products",
+					"name": "Get Product Usage History",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/products/GetLowInStockProducts",
+							"raw": "{{base_url}}/api/products/:id/usage-history",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "GetLowInStockProducts"]
+							"path": ["api", "products", ":id", "usage-history"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product Usage Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/:id/usage-stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", ":id", "usage-stats"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}"
+								}
+							]
 						}
 					},
 					"response": []
 				},
 				{
 					"name": "Create Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.product && jsonData.product.id) {",
+									"        pm.collectionVariables.set(\"product_id\", jsonData.product.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -436,20 +940,20 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Ethanol 99.9%\",\n  \"description\": \"High purity ethanol for laboratory use\",\n  \"quantity\": 10,\n  \"unit\": \"L\",\n  \"minimumQuantity\": 2,\n  \"location\": \"Shelf A3\",\n  \"manufacturer\": \"ChemCorp\",\n  \"catalogNumber\": \"ETH-999\"\n}"
+							"raw": "{\n  \"name\": \"Ethanol 99.9%\",\n  \"description\": \"High purity ethanol for laboratory use\",\n  \"location_id\": {{location_id}},\n  \"quantity\": 10.5,\n  \"unit\": \"L\",\n  \"formula\": \"C2H5OH\",\n  \"expiration_date\": \"2025-12-31T00:00:00Z\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/products/Create",
+							"raw": "{{base_url}}/api/products",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "Create"]
+							"path": ["api", "products"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Edit Product",
+					"name": "Update Product",
 					"request": {
-						"method": "PATCH",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -458,12 +962,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"id\": \"\",\n  \"name\": \"Ethanol 99.9% - Updated\",\n  \"description\": \"High purity ethanol for laboratory use - Updated description\",\n  \"minimumQuantity\": 3,\n  \"location\": \"Shelf B1\"\n}"
+							"raw": "{\n  \"name\": \"Ethanol 99.9% - Updated\",\n  \"description\": \"High purity ethanol - Grade A\",\n  \"location_id\": {{location_id}},\n  \"quantity\": 12.0,\n  \"unit\": \"L\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/products/EditProduct",
+							"raw": "{{base_url}}/api/products/:id",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "EditProduct"]
+							"path": ["api", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}"
+								}
+							]
 						}
 					},
 					"response": []
@@ -471,7 +981,7 @@
 				{
 					"name": "Add Quantity to Product",
 					"request": {
-						"method": "PATCH",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -480,12 +990,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"productId\": \"\",\n  \"quantity\": 5\n}"
+							"raw": "{\n  \"quantity_added\": 5.0,\n  \"unit\": \"L\",\n  \"notes\": \"New shipment received\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/products/AddQuantity",
+							"raw": "{{base_url}}/api/products/:id/add-quantity",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "AddQuantity"]
+							"path": ["api", "products", ":id", "add-quantity"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}"
+								}
+							]
 						}
 					},
 					"response": []
@@ -493,7 +1009,7 @@
 				{
 					"name": "Use Product",
 					"request": {
-						"method": "PATCH",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -502,12 +1018,37 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"productId\": \"\",\n  \"quantity\": 2,\n  \"purpose\": \"Experiment XYZ-123\",\n  \"notes\": \"Used for protein extraction\"\n}"
+							"raw": "{\n  \"user_id\": {{researcher_id}},\n  \"quantity_used\": 2.5,\n  \"unit\": \"L\",\n  \"notes\": \"Used for protein extraction experiment\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/products/UseProduct",
+							"raw": "{{base_url}}/api/products/:id/use",
 							"host": ["{{base_url}}"],
-							"path": ["api", "products", "UseProduct"]
+							"path": ["api", "products", ":id", "use"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}"
+								}
+							]
 						}
 					},
 					"response": []
@@ -523,9 +1064,19 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/equipment/GetEquipments",
+							"raw": "{{base_url}}/api/equipment?page=1&pageSize=20",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipment", "GetEquipments"]
+							"path": ["api", "equipment"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
 						}
 					},
 					"response": []
@@ -536,13 +1087,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/equipment/GetDetailedEquipment?id=",
+							"raw": "{{base_url}}/api/equipment/:id",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipment", "GetDetailedEquipment"],
-							"query": [
+							"path": ["api", "equipment", ":id"],
+							"variable": [
 								{
 									"key": "id",
-									"value": ""
+									"value": "{{equipment_id}}"
 								}
 							]
 						}
@@ -551,6 +1102,22 @@
 				},
 				{
 					"name": "Add Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.equipment && jsonData.equipment.id) {",
+									"        pm.collectionVariables.set(\"equipment_id\", jsonData.equipment.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -561,12 +1128,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Centrifuge Model X1000\",\n  \"description\": \"High-speed centrifuge for sample preparation\",\n  \"location\": \"Lab Room 201\",\n  \"manufacturer\": \"LabEquip Inc\",\n  \"model\": \"X1000\",\n  \"serialNumber\": \"SN-12345\",\n  \"acquisitionDate\": \"2024-01-15T00:00:00Z\",\n  \"status\": \"available\"\n}"
+							"raw": "{\n  \"name\": \"Centrifuge Model X1000\",\n  \"description\": \"High-speed centrifuge for sample preparation\",\n  \"location_id\": {{location_id}},\n  \"property_number\": \"EQ-2024-001\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/equipment/AddEquipment",
+							"raw": "{{base_url}}/api/equipment",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipment", "AddEquipment"]
+							"path": ["api", "equipment"]
 						}
 					},
 					"response": []
@@ -574,7 +1141,7 @@
 				{
 					"name": "Edit Equipment",
 					"request": {
-						"method": "PATCH",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -583,12 +1150,37 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"id\": \"\",\n  \"name\": \"Centrifuge Model X1000 - Updated\",\n  \"description\": \"High-speed centrifuge - maintenance completed\",\n  \"location\": \"Lab Room 202\",\n  \"status\": \"available\"\n}"
+							"raw": "{\n  \"name\": \"Centrifuge Model X1000 - Updated\",\n  \"description\": \"High-speed centrifuge - maintenance completed\",\n  \"location_id\": {{location_id}},\n  \"property_number\": \"EQ-2024-001\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/equipment/EditEquipment",
+							"raw": "{{base_url}}/api/equipment/:id",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipment", "EditEquipment"]
+							"path": ["api", "equipment", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{equipment_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Equipment",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/equipment/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipment", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{equipment_id}}"
+								}
+							]
 						}
 					},
 					"response": []
@@ -604,21 +1196,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/equipmentusage/GetEquipmentUsageCalendar?equipmentId=&startDate=2024-01-01&endDate=2024-12-31",
+							"raw": "{{base_url}}/api/equipment/:id/calendar",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipmentusage", "GetEquipmentUsageCalendar"],
-							"query": [
+							"path": ["api", "equipment", ":id", "calendar"],
+							"variable": [
 								{
-									"key": "equipmentId",
-									"value": ""
-								},
-								{
-									"key": "startDate",
-									"value": "2024-01-01"
-								},
-								{
-									"key": "endDate",
-									"value": "2024-12-31"
+									"key": "id",
+									"value": "{{equipment_id}}"
 								}
 							]
 						}
@@ -631,32 +1215,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/equipmentusage/GetEquipmentUsageHistory?equipmentId=",
+							"raw": "{{base_url}}/api/equipment/:id/usage-history",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipmentusage", "GetEquipmentUsageHistory"],
-							"query": [
-								{
-									"key": "equipmentId",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Equipment Usage By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/equipmentusage/GetEquipmentUsage?id=",
-							"host": ["{{base_url}}"],
-							"path": ["api", "equipmentusage", "GetEquipmentUsage"],
-							"query": [
+							"path": ["api", "equipment", ":id", "usage-history"],
+							"variable": [
 								{
 									"key": "id",
-									"value": ""
+									"value": "{{equipment_id}}"
 								}
 							]
 						}
@@ -675,12 +1240,335 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"equipmentId\": \"\",\n  \"startTime\": \"2024-11-16T09:00:00Z\",\n  \"endTime\": \"2024-11-16T12:00:00Z\",\n  \"purpose\": \"Sample centrifugation for experiment ABC\",\n  \"notes\": \"Processing 20 samples at 5000 RPM\"\n}"
+							"raw": "{\n  \"user_id\": {{researcher_id}},\n  \"start_date\": \"2024-11-20T09:00:00Z\",\n  \"end_date\": \"2024-11-20T12:00:00Z\",\n  \"description\": \"Sample centrifugation for experiment ABC\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/equipmentusage/UseEquipment",
+							"raw": "{{base_url}}/api/equipment/:id/use",
 							"host": ["{{base_url}}"],
-							"path": ["api", "equipmentusage", "UseEquipment"]
+							"path": ["api", "equipment", ":id", "use"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{equipment_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Equipment Overlap",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"start_date\": \"2024-11-20T09:00:00Z\",\n  \"end_date\": \"2024-11-20T12:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/equipment/:id/check-overlap",
+							"host": ["{{base_url}}"],
+							"path": ["api", "equipment", ":id", "check-overlap"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{equipment_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Samples",
+			"item": [
+				{
+					"name": "Get All Samples",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/samples",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Samples (with filters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/samples?search=bacteria&tags=pathogenic&tags=gram-positive",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples"],
+							"query": [
+								{
+									"key": "search",
+									"value": "bacteria",
+									"description": "Search by sample name"
+								},
+								{
+									"key": "tags",
+									"value": "pathogenic",
+									"description": "Filter by tag (can specify multiple)"
+								},
+								{
+									"key": "tags",
+									"value": "gram-positive",
+									"description": "Filter by tag (AND logic)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sample by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/samples/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Sample",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"E. coli Sample 001\",\n  \"description\": \"Isolated from soil sample\",\n  \"origin\": \"Garden Soil, Lab Alpha\",\n  \"isolationDate\": \"2024-11-15T10:00:00Z\",\n  \"latitude\": -23.5505,\n  \"longitude\": -46.6333,\n  \"subcultureMedium\": \"LB Agar\",\n  \"subcultureIntervalDays\": 30,\n  \"researcherId\": {{researcher_id}},\n  \"locationId\": {{location_id}},\n  \"tags\": [\"bacteria\", \"gram-negative\", \"soil-origin\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/samples",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Sample",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"E. coli Sample 001 - Updated\",\n  \"description\": \"Isolated from soil sample - confirmed pathogenic strain\",\n  \"origin\": \"Garden Soil, Lab Alpha\",\n  \"isolationDate\": \"2024-11-15T10:00:00Z\",\n  \"latitude\": -23.5505,\n  \"longitude\": -46.6333,\n  \"subcultureMedium\": \"LB Agar\",\n  \"subcultureIntervalDays\": 21,\n  \"researcherId\": {{researcher_id}},\n  \"locationId\": {{location_id}},\n  \"tags\": [\"bacteria\", \"gram-negative\", \"soil-origin\", \"pathogenic\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/samples/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Sample",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/samples/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Replicas",
+			"item": [
+				{
+					"name": "Get All Replicas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/replicas",
+							"host": ["{{base_url}}"],
+							"path": ["api", "replicas"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Replicas by Sample",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/samples/:sampleId/replicas",
+							"host": ["{{base_url}}"],
+							"path": ["api", "samples", ":sampleId", "replicas"],
+							"variable": [
+								{
+									"key": "sampleId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Replica by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/replicas/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "replicas", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Replica",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"E. coli Sample 001 - Replica 2\",\n  \"sampleId\": 1,\n  \"locationId\": {{location_id}},\n  \"status\": \"active\",\n  \"lastSubcultureDate\": \"2024-11-20T14:00:00Z\",\n  \"nextSubcultureDate\": \"2024-12-20T14:00:00Z\",\n  \"notes\": \"Created for backup purposes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/replicas",
+							"host": ["{{base_url}}"],
+							"path": ["api", "replicas"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Replica",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"E. coli Sample 001 - Replica 2 Updated\",\n  \"locationId\": {{location_id}},\n  \"status\": \"contaminated\",\n  \"notes\": \"Contamination detected during inspection\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/replicas/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "replicas", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Record Subculture",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subcultureIntervalDays\": 30\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/replicas/:id/subculture",
+							"host": ["{{base_url}}"],
+							"path": ["api", "replicas", ":id", "subculture"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Replica",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/replicas/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "replicas", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
 						}
 					},
 					"response": []
