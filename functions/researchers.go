@@ -16,6 +16,7 @@ import (
 
 // ResearcherSimple is a simplified researcher for dropdowns
 type ResearcherSimple struct {
+	ID        uint   `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
@@ -24,7 +25,7 @@ type ResearcherSimple struct {
 
 // ResearcherDetail is full researcher details
 type ResearcherDetail struct {
-	ClerkUserID  string `json:"clerk_user_id"`
+	ID           uint   `json:"id"`
 	Email        string `json:"email"`
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`
@@ -91,6 +92,7 @@ func GetAllResearchers(w http.ResponseWriter, r *http.Request) {
 		var researchers []ResearcherSimple
 		for _, user := range users {
 			researchers = append(researchers, ResearcherSimple{
+				ID:        user.ID,
 				FirstName: user.FirstName,
 				LastName:  user.LastName,
 				Email:     user.Email,
@@ -107,7 +109,7 @@ func GetAllResearchers(w http.ResponseWriter, r *http.Request) {
 				labID = *user.LaboratoryID
 			}
 			researchers = append(researchers, ResearcherDetail{
-				ClerkUserID:  user.ClerkUserID,
+				ID:           user.ID,
 				Email:        user.Email,
 				FirstName:    user.FirstName,
 				LastName:     user.LastName,
@@ -158,7 +160,7 @@ func GetResearcherByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	researcher := ResearcherDetail{
-		ClerkUserID:  user.ClerkUserID,
+		ID:           user.ID,
 		Email:        user.Email,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
@@ -241,7 +243,7 @@ func CreateResearcher(w http.ResponseWriter, r *http.Request) {
 	}
 
 	researcher := ResearcherDetail{
-		ClerkUserID:  user.ClerkUserID,
+		ID:           user.ID,
 		Email:        user.Email,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
@@ -329,7 +331,7 @@ func UpdateResearcher(w http.ResponseWriter, r *http.Request) {
 	}
 
 	researcher := ResearcherDetail{
-		ClerkUserID:  user.ClerkUserID,
+		ID:           user.ID,
 		Email:        user.Email,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,

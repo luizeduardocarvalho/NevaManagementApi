@@ -49,14 +49,14 @@ type InvitationResponse struct {
 }
 
 type InvitationPublicResponse struct {
-	ID             uint   `json:"id"`
-	LaboratoryID   uint   `json:"laboratory_id"`
-	Email          string `json:"email"`
-	Role           string `json:"role"`
-	Status         string `json:"status"`
+	ID             uint      `json:"id"`
+	LaboratoryID   uint      `json:"laboratory_id"`
+	Email          string    `json:"email"`
+	Role           string    `json:"role"`
+	Status         string    `json:"status"`
 	ExpiresAt      time.Time `json:"expires_at"`
-	LaboratoryName string `json:"laboratory_name"`
-	InvitedByName  string `json:"invited_by_name"`
+	LaboratoryName string    `json:"laboratory_name"`
+	InvitedByName  string    `json:"invited_by_name"`
 }
 
 // CreateLaboratory creates a new laboratory for the current user

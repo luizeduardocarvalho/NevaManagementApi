@@ -26,13 +26,13 @@ type CheckOverlapRequest struct {
 }
 
 type EquipmentUsageCalendarResponse struct {
-	ID        uint   `json:"id"`
-	EquipmentID uint `json:"equipment_id"`
-	UserID    uint   `json:"user_id"`
-	UserName  string `json:"user_name"`
+	ID          uint   `json:"id"`
+	EquipmentID uint   `json:"equipment_id"`
+	UserID      uint   `json:"user_id"`
+	UserName    string `json:"user_name"`
 	Description string `json:"description"`
-	StartDate string `json:"start_date"`
-	EndDate   string `json:"end_date"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
 }
 
 func GetEquipmentUsageCalendar(w http.ResponseWriter, r *http.Request) {

@@ -418,6 +418,238 @@ var migrationList = []*gormigrate.Migration{
 			return nil
 		},
 	},
+	{
+		ID: "20251126_add_routines",
+		Migrate: func(tx *gorm.DB) error {
+			// Create routines table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routines (
+					id BIGSERIAL PRIMARY KEY,
+					name VARCHAR(255) NOT NULL,
+					description TEXT,
+					schedule_type VARCHAR(50) NOT NULL CHECK (schedule_type IN ('one_time', 'recurring', 'template')),
+					deadline TIMESTAMP,
+					laboratory_id BIGINT NOT NULL,
+					created_by BIGINT NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (laboratory_id) REFERENCES laboratories(id),
+					FOREIGN KEY (created_by) REFERENCES users(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_routines_laboratory_id ON routines(laboratory_id);
+				CREATE INDEX IF NOT EXISTS idx_routines_deleted_at ON routines(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routines table: %w", err)
+			}
+
+			// Create routine_steps table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_steps (
+					id BIGSERIAL PRIMARY KEY,
+					routine_id BIGINT NOT NULL,
+					"order" INTEGER NOT NULL,
+					description TEXT NOT NULL,
+					notes TEXT,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (routine_id) REFERENCES routines(id) ON DELETE CASCADE
+				);
+				CREATE INDEX IF NOT EXISTS idx_routine_steps_routine_id ON routine_steps(routine_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_steps_deleted_at ON routine_steps(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_steps table: %w", err)
+			}
+
+			// Create routine_materials table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_materials (
+					id BIGSERIAL PRIMARY KEY,
+					routine_id BIGINT NOT NULL,
+					product_id BIGINT NOT NULL,
+					quantity DOUBLE PRECISION NOT NULL,
+					unit VARCHAR(50) NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (routine_id) REFERENCES routines(id) ON DELETE CASCADE,
+					FOREIGN KEY (product_id) REFERENCES products(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_routine_materials_routine_id ON routine_materials(routine_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_materials_deleted_at ON routine_materials(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_materials table: %w", err)
+			}
+
+			// Create routine_equipment table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_equipment (
+					id BIGSERIAL PRIMARY KEY,
+					routine_id BIGINT NOT NULL,
+					equipment_id BIGINT NOT NULL,
+					estimated_duration INTEGER,
+					required BOOLEAN DEFAULT true,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (routine_id) REFERENCES routines(id) ON DELETE CASCADE,
+					FOREIGN KEY (equipment_id) REFERENCES equipment(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_routine_equipment_routine_id ON routine_equipment(routine_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_equipment_deleted_at ON routine_equipment(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_equipment table: %w", err)
+			}
+
+			// Create recurrence_rules table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS recurrence_rules (
+					id BIGSERIAL PRIMARY KEY,
+					routine_id BIGINT UNIQUE NOT NULL,
+					frequency VARCHAR(50) NOT NULL CHECK (frequency IN ('daily', 'weekly', 'monthly')),
+					"interval" INTEGER DEFAULT 1,
+					days_of_week TEXT,
+					day_of_month INTEGER,
+					start_date TIMESTAMP NOT NULL,
+					end_date TIMESTAMP,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (routine_id) REFERENCES routines(id) ON DELETE CASCADE
+				);
+				CREATE INDEX IF NOT EXISTS idx_recurrence_rules_deleted_at ON recurrence_rules(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create recurrence_rules table: %w", err)
+			}
+
+			// Create routine_assignments table (many-to-many for assigned users)
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_assignments (
+					routine_id BIGINT NOT NULL,
+					user_id BIGINT NOT NULL,
+					PRIMARY KEY (routine_id, user_id),
+					FOREIGN KEY (routine_id) REFERENCES routines(id) ON DELETE CASCADE,
+					FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+				);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_assignments table: %w", err)
+			}
+
+			// Create routine_executions table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_executions (
+					id BIGSERIAL PRIMARY KEY,
+					routine_id BIGINT NOT NULL,
+					executed_by BIGINT NOT NULL,
+					status VARCHAR(50) DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed', 'cancelled')),
+					started_at TIMESTAMP NOT NULL,
+					completed_at TIMESTAMP,
+					notes TEXT,
+					laboratory_id BIGINT NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (routine_id) REFERENCES routines(id),
+					FOREIGN KEY (executed_by) REFERENCES users(id),
+					FOREIGN KEY (laboratory_id) REFERENCES laboratories(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_routine_executions_routine_id ON routine_executions(routine_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_executions_laboratory_id ON routine_executions(laboratory_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_executions_deleted_at ON routine_executions(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_executions table: %w", err)
+			}
+
+			// Create routine_execution_steps table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_execution_steps (
+					id BIGSERIAL PRIMARY KEY,
+					execution_id BIGINT NOT NULL,
+					step_id BIGINT NOT NULL,
+					completed BOOLEAN DEFAULT false,
+					completed_at TIMESTAMP,
+					notes TEXT,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (execution_id) REFERENCES routine_executions(id) ON DELETE CASCADE,
+					FOREIGN KEY (step_id) REFERENCES routine_steps(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_routine_execution_steps_execution_id ON routine_execution_steps(execution_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_execution_steps_deleted_at ON routine_execution_steps(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_execution_steps table: %w", err)
+			}
+
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			tables := []string{
+				"routine_execution_steps",
+				"routine_executions",
+				"routine_assignments",
+				"recurrence_rules",
+				"routine_equipment",
+				"routine_materials",
+				"routine_steps",
+				"routines",
+			}
+			for _, table := range tables {
+				if err := tx.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS %s CASCADE`, table)).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	},
+	{
+		ID: "20251127_add_routine_execution_materials",
+		Migrate: func(tx *gorm.DB) error {
+			// Create routine_execution_materials table
+			if err := tx.Exec(`
+				CREATE TABLE IF NOT EXISTS routine_execution_materials (
+					id BIGSERIAL PRIMARY KEY,
+					execution_id BIGINT NOT NULL,
+					product_id BIGINT NOT NULL,
+					planned_quantity DOUBLE PRECISION NOT NULL,
+					actual_quantity DOUBLE PRECISION DEFAULT 0,
+					unit VARCHAR(50) NOT NULL,
+					created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+					deleted_at TIMESTAMP,
+					FOREIGN KEY (execution_id) REFERENCES routine_executions(id) ON DELETE CASCADE,
+					FOREIGN KEY (product_id) REFERENCES products(id)
+				);
+				CREATE INDEX IF NOT EXISTS idx_routine_execution_materials_execution_id ON routine_execution_materials(execution_id);
+				CREATE INDEX IF NOT EXISTS idx_routine_execution_materials_deleted_at ON routine_execution_materials(deleted_at);
+			`).Error; err != nil {
+				return fmt.Errorf("failed to create routine_execution_materials table: %w", err)
+			}
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			return tx.Exec(`DROP TABLE IF EXISTS routine_execution_materials CASCADE`).Error
+		},
+	},
+	{
+		ID: "20251127_add_reserved_quantity_to_products",
+		Migrate: func(tx *gorm.DB) error {
+			// Add reserved_quantity column to products table
+			if !tx.Migrator().HasColumn(&models.Product{}, "reserved_quantity") {
+				if err := tx.Exec(`ALTER TABLE products ADD COLUMN reserved_quantity DOUBLE PRECISION DEFAULT 0 NOT NULL`).Error; err != nil {
+					return fmt.Errorf("failed to add reserved_quantity column: %w", err)
+				}
+			}
+			return nil
+		},
+		Rollback: func(tx *gorm.DB) error {
+			if tx.Migrator().HasColumn(&models.Product{}, "reserved_quantity") {
+				return tx.Migrator().DropColumn(&models.Product{}, "reserved_quantity")
+			}
+			return nil
+		},
+	},
 }
 
 // NewMigrator creates a configured gormigrate instance bound to the provided DB.

@@ -21,7 +21,7 @@ import (
 )
 
 type ClerkClaims struct {
-	Sub   string `json:"sub"`   // Clerk user ID
+	Sub   string `json:"sub"` // Clerk user ID
 	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
@@ -75,7 +75,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString := bearerToken[1]
-		
+
 		// Try to validate as test token first (for development)
 		if claims, err := validateTestToken(tokenString); err == nil {
 			ctx := context.WithValue(r.Context(), UserClaimsKey, claims)
@@ -100,10 +100,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Create claims from database user
 		claims := &JWTClaims{
-			UserID:       user.ID,
-			ClerkUserID:  user.ClerkUserID,
-			Email:        user.Email,
-			Role:         user.Role,
+			UserID:      user.ID,
+			ClerkUserID: user.ClerkUserID,
+			Email:       user.Email,
+			Role:        user.Role,
 		}
 
 		// Add laboratory ID if user has one (lab-scoped user)
@@ -125,7 +125,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // validateTestToken validates test tokens for development
 func validateTestToken(tokenString string) (*JWTClaims, error) {
 	secret := "your-local-jwt-secret-key" // Same as in create_test_token.go
-	
+
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

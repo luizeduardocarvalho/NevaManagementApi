@@ -1574,6 +1574,331 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Routine Management",
+			"item": [
+				{
+					"name": "Get All Routines",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines?scheduleType=recurring",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines"],
+							"query": [
+								{
+									"key": "scheduleType",
+									"value": "recurring",
+									"description": "Filter by schedule type: one_time, recurring, or template"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Routine by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Routine",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Weekly Equipment Calibration\",\n  \"description\": \"Routine calibration of sensitive laboratory equipment\",\n  \"scheduleType\": \"recurring\",\n  \"materials\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 100\n    }\n  ],\n  \"equipment\": [\n    {\n      \"equipmentId\": 1,\n      \"estimatedDuration\": 30,\n      \"required\": true\n    }\n  ],\n  \"steps\": [\n    {\n      \"order\": 1,\n      \"description\": \"Power off equipment\",\n      \"notes\": \"Ensure all connections are secure\"\n    },\n    {\n      \"order\": 2,\n      \"description\": \"Clean sensor surfaces\",\n      \"notes\": \"Use lint-free cloth and approved cleaning solution\"\n    },\n    {\n      \"order\": 3,\n      \"description\": \"Run calibration sequence\",\n      \"notes\": \"Follow manufacturer's calibration protocol\"\n    },\n    {\n      \"order\": 4,\n      \"description\": \"Verify calibration results\",\n      \"notes\": \"Results should be within ±2% tolerance\"\n    }\n  ],\n  \"recurrence\": {\n    \"frequency\": \"weekly\",\n    \"interval\": 1,\n    \"daysOfWeek\": [1],\n    \"startDate\": \"2024-11-25T09:00:00Z\"\n  },\n  \"assignedTo\": [1]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/routines",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Routine",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Weekly Equipment Calibration - Updated\",\n  \"description\": \"Updated routine for equipment calibration\",\n  \"scheduleType\": \"recurring\",\n  \"materials\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 150\n    }\n  ],\n  \"equipment\": [\n    {\n      \"equipmentId\": 1,\n      \"estimatedDuration\": 45,\n      \"required\": true\n    }\n  ],\n  \"steps\": [\n    {\n      \"order\": 1,\n      \"description\": \"Power off all equipment\",\n      \"notes\": \"Check all connections\"\n    },\n    {\n      \"order\": 2,\n      \"description\": \"Perform full calibration\",\n      \"notes\": \"Updated protocol\"\n    }\n  ],\n  \"recurrence\": {\n    \"frequency\": \"weekly\",\n    \"interval\": 1,\n    \"daysOfWeek\": [1, 4],\n    \"startDate\": \"2024-11-25T09:00:00Z\"\n  },\n  \"assignedTo\": [1]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/routines/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Routine",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/:id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start Execution",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Starting weekly calibration routine\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/routines/:routineId/executions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", ":routineId", "executions"],
+							"variable": [
+								{
+									"key": "routineId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Execution Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/executions/:executionId",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "executions", ":executionId"],
+							"variable": [
+								{
+									"key": "executionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Step Complete",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"Step completed successfully\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/routines/executions/:executionId/steps/:stepId",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "executions", ":executionId", "steps", ":stepId"],
+							"variable": [
+								{
+									"key": "executionId",
+									"value": "1"
+								},
+								{
+									"key": "stepId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Execution",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notes\": \"All calibration steps completed. Equipment verified.\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/routines/executions/:executionId/complete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "executions", ":executionId", "complete"],
+							"variable": [
+								{
+									"key": "executionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Execution",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/executions/:executionId/cancel",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "executions", ":executionId", "cancel"],
+							"variable": [
+								{
+									"key": "executionId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Routine Availability",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/:routineId/availability",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", ":routineId", "availability"],
+							"variable": [
+								{
+									"key": "routineId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Upcoming Routines",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/upcoming",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "upcoming"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Execution History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/executions?routineId=1&status=completed&startDate=2024-11-01T00:00:00Z&endDate=2024-11-30T23:59:59Z",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "executions"],
+							"query": [
+								{
+									"key": "routineId",
+									"value": "1",
+									"description": "Filter by routine ID"
+								},
+								{
+									"key": "status",
+									"value": "completed",
+									"description": "Filter by status: in_progress, completed, cancelled"
+								},
+								{
+									"key": "executedBy",
+									"value": "1",
+									"description": "Filter by user ID",
+									"disabled": true
+								},
+								{
+									"key": "startDate",
+									"value": "2024-11-01T00:00:00Z",
+									"description": "Filter by start date (RFC3339)"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-11-30T23:59:59Z",
+									"description": "Filter by end date (RFC3339)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/routines/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "routines", "statistics"]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

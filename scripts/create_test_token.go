@@ -18,11 +18,11 @@ func main() {
 
 	// Create test claims (simulating a Clerk user)
 	claims := jwt.MapClaims{
-		"sub":   "user_test123",           // Clerk User ID
-		"email": "test@example.com",       // User email
-		"iat":   time.Now().Unix(),        // Issued at
+		"sub":   "user_test123",                        // Clerk User ID
+		"email": "test@example.com",                    // User email
+		"iat":   time.Now().Unix(),                     // Issued at
 		"exp":   time.Now().Add(24 * time.Hour).Unix(), // Expires in 24 hours
-		"iss":   "https://test.clerk.accounts.dev", // Issuer (Clerk)
+		"iss":   "https://test.clerk.accounts.dev",     // Issuer (Clerk)
 	}
 
 	// Create token

@@ -729,15 +729,15 @@ func GetProductUsageStats(w http.ResponseWriter, r *http.Request) {
 		Scan(&totalUsage)
 
 	stats := map[string]interface{}{
-		"product_id":                productID,
-		"product_name":              product.Name,
-		"current_quantity":          product.Quantity,
-		"unit":                      product.Unit,
-		"usage_last_30_days":        thirtyDayUsage.TotalUsed,
-		"usage_last_3_months":       threeMonthUsage.TotalUsed,
-		"total_usage_all_time":      totalUsage.TotalUsed,
-		"average_monthly_usage":     threeMonthUsage.TotalUsed / 3,
-		"estimated_days_remaining":  calculateEstimatedDaysRemaining(product.Quantity, threeMonthUsage.TotalUsed),
+		"product_id":               productID,
+		"product_name":             product.Name,
+		"current_quantity":         product.Quantity,
+		"unit":                     product.Unit,
+		"usage_last_30_days":       thirtyDayUsage.TotalUsed,
+		"usage_last_3_months":      threeMonthUsage.TotalUsed,
+		"total_usage_all_time":     totalUsage.TotalUsed,
+		"average_monthly_usage":    threeMonthUsage.TotalUsed / 3,
+		"estimated_days_remaining": calculateEstimatedDaysRemaining(product.Quantity, threeMonthUsage.TotalUsed),
 	}
 
 	render.JSON(w, r, stats)

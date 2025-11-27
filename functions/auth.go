@@ -80,28 +80,28 @@ type AuthResponse struct {
 
 // Clerk API response types
 type ClerkSignUpResponse struct {
-	ID                   string                 `json:"id"`
-	Object               string                 `json:"object"`
-	Status               string                 `json:"status"`
-	EmailAddress         string                 `json:"email_address"`
-	FirstName            string                 `json:"first_name"`
-	LastName             string                 `json:"last_name"`
-	CreatedSessionID     string                 `json:"created_session_id"`
-	CreatedUserID        string                 `json:"created_user_id"`
-	EmailAddressID       string                 `json:"email_address_id"`
-	Verifications        map[string]interface{} `json:"verifications"`
+	ID               string                 `json:"id"`
+	Object           string                 `json:"object"`
+	Status           string                 `json:"status"`
+	EmailAddress     string                 `json:"email_address"`
+	FirstName        string                 `json:"first_name"`
+	LastName         string                 `json:"last_name"`
+	CreatedSessionID string                 `json:"created_session_id"`
+	CreatedUserID    string                 `json:"created_user_id"`
+	EmailAddressID   string                 `json:"email_address_id"`
+	Verifications    map[string]interface{} `json:"verifications"`
 }
 
 type ClerkSessionResponse struct {
-	ID               string    `json:"id"`
-	ClientID         string    `json:"client_id"`
-	UserID           string    `json:"user_id"`
-	Status           string    `json:"status"`
-	LastActiveAt     int64     `json:"last_active_at"`
-	ExpireAt         int64     `json:"expire_at"`
-	AbandonAt        int64     `json:"abandon_at"`
-	CreatedAt        int64     `json:"created_at"`
-	UpdatedAt        int64     `json:"updated_at"`
+	ID           string `json:"id"`
+	ClientID     string `json:"client_id"`
+	UserID       string `json:"user_id"`
+	Status       string `json:"status"`
+	LastActiveAt int64  `json:"last_active_at"`
+	ExpireAt     int64  `json:"expire_at"`
+	AbandonAt    int64  `json:"abandon_at"`
+	CreatedAt    int64  `json:"created_at"`
+	UpdatedAt    int64  `json:"updated_at"`
 }
 
 type ClerkSessionTokenResponse struct {

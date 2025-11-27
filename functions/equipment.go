@@ -29,11 +29,11 @@ type GetEquipmentResponse struct {
 }
 
 type GetDetailedEquipmentResponse struct {
-	ID             uint                     `json:"id"`
-	Name           string                   `json:"name"`
-	Description    string                   `json:"description"`
-	PropertyNumber string                   `json:"property_number"`
-	Location       LocationResponse         `json:"location"`
+	ID             uint                        `json:"id"`
+	Name           string                      `json:"name"`
+	Description    string                      `json:"description"`
+	PropertyNumber string                      `json:"property_number"`
+	Location       LocationResponse            `json:"location"`
 	UsageList      []GetEquipmentUsageResponse `json:"usage_list"`
 }
 
@@ -162,7 +162,7 @@ func AddEquipment(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, map[string]interface{}{
-		"message": fmt.Sprintf("%s was created successfully", req.Name),
+		"message":   fmt.Sprintf("%s was created successfully", req.Name),
 		"equipment": equipment,
 	})
 }
@@ -278,7 +278,7 @@ func EditEquipment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, map[string]interface{}{
-		"message": fmt.Sprintf("%s was updated successfully", req.Name),
+		"message":   fmt.Sprintf("%s was updated successfully", req.Name),
 		"equipment": equipment,
 	})
 }

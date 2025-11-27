@@ -2,18 +2,18 @@ package models
 
 import (
 	"fmt"
+	"gorm.io/gorm"
 	"strings"
 	"time"
-	"gorm.io/gorm"
 )
 
 type Organization struct {
-	ID           uint           `gorm:"primarykey" json:"id"`
-	Name         string         `gorm:"size:100;not null" json:"name"`
-	Description  string         `json:"description"`
-	CreatedAt    time.Time      `json:"created_at"`
-	UpdatedAt    time.Time      `json:"updated_at"`
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	ID          uint           `gorm:"primarykey" json:"id"`
+	Name        string         `gorm:"size:100;not null" json:"name"`
+	Description string         `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
 	Laboratories []Laboratory `json:"laboratories,omitempty"`
@@ -106,21 +106,22 @@ type Location struct {
 }
 
 type Product struct {
-	ID             uint           `gorm:"primarykey" json:"id"`
-	Name           string         `gorm:"size:100;not null" json:"name"`
-	Description    string         `json:"description"`
-	LocationID     uint           `gorm:"not null" json:"location_id"`
-	Location       Location       `json:"location,omitempty"`
-	Quantity       float64        `gorm:"not null" json:"quantity"`
-	Formula        string         `json:"formula"`
-	Unit           string         `gorm:"size:50;not null" json:"unit"`
-	ExpirationDate time.Time      `json:"expiration_date"`
-	LaboratoryID   uint           `gorm:"not null" json:"laboratory_id"`
-	Laboratory     Laboratory     `json:"laboratory,omitempty"`
-	ProductUsages  []ProductUsage `json:"product_usages,omitempty"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+	ID               uint           `gorm:"primarykey" json:"id"`
+	Name             string         `gorm:"size:100;not null" json:"name"`
+	Description      string         `json:"description"`
+	LocationID       uint           `gorm:"not null" json:"location_id"`
+	Location         Location       `json:"location,omitempty"`
+	Quantity         float64        `gorm:"not null" json:"quantity"`
+	ReservedQuantity float64        `gorm:"default:0;not null" json:"reserved_quantity"`
+	Formula          string         `json:"formula"`
+	Unit             string         `gorm:"size:50;not null" json:"unit"`
+	ExpirationDate   time.Time      `json:"expiration_date"`
+	LaboratoryID     uint           `gorm:"not null" json:"laboratory_id"`
+	Laboratory       Laboratory     `json:"laboratory,omitempty"`
+	ProductUsages    []ProductUsage `json:"product_usages,omitempty"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type ProductUsage struct {
@@ -141,18 +142,18 @@ type ProductUsage struct {
 }
 
 type Equipment struct {
-	ID             uint              `gorm:"primarykey" json:"id"`
-	Name           string            `gorm:"size:100;not null" json:"name"`
-	Description    string            `json:"description"`
-	LocationID     uint              `gorm:"not null" json:"location_id"`
-	Location       Location          `json:"location,omitempty"`
-	PropertyNumber string            `gorm:"size:100" json:"property_number"`
-	LaboratoryID   uint              `gorm:"not null" json:"laboratory_id"`
-	Laboratory     Laboratory        `json:"laboratory,omitempty"`
+	ID              uint             `gorm:"primarykey" json:"id"`
+	Name            string           `gorm:"size:100;not null" json:"name"`
+	Description     string           `json:"description"`
+	LocationID      uint             `gorm:"not null" json:"location_id"`
+	Location        Location         `json:"location,omitempty"`
+	PropertyNumber  string           `gorm:"size:100" json:"property_number"`
+	LaboratoryID    uint             `gorm:"not null" json:"laboratory_id"`
+	Laboratory      Laboratory       `json:"laboratory,omitempty"`
 	EquipmentUsages []EquipmentUsage `json:"equipment_usages,omitempty"`
-	CreatedAt      time.Time         `json:"created_at"`
-	UpdatedAt      time.Time         `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt    `gorm:"index" json:"-"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
+	DeletedAt       gorm.DeletedAt   `gorm:"index" json:"-"`
 }
 
 type EquipmentUsage struct {

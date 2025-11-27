@@ -103,6 +103,9 @@ func SetupRouter() *chi.Mux {
 
 			// Replica management
 			functions.RegisterReplicaRoutes(r)
+
+			// Routine management
+			functions.RegisterRoutineRoutes(r)
 		})
 	})
 
